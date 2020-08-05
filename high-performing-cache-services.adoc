@@ -1,29 +1,29 @@
-= Lab1 - Creating High-performing Cacheable Service
+= Lab1 - 高性能なキャッシュ可能なサービスの構築
 :experimental:
 
-In this lab, we’ll develop 5 microservices into the cloud-native appliation architecture. These cloud-native applications will have transactions with multiple datasources such as *PostgreSQL* and *MongoDB*. Especially, we will learn how to configure datasources easily using *Quarkus Extensions*. In the end, we will optimize *data transaction performance* of the shopping cart service thru integrating with a *Cache(Data Grid) server* to increase end users’(customers) satification. And there’s more fun facts how easy it is to deploy applications on OpenShift 4 via *oc* command line tool.
+このラボでは、5つのマイクロサービスを Cloud Native アプリケーションアーキテクチャで開発します。これらの Cloud Native アプリケーションは、*PostgreSQL* や *MongoDB* などの複数のデータソースとのトランザクションを持つことになります。特に、*Quarkus Extensions* を利用して、簡単にデータソースを設定する方法を学びます。最終的には、*Cache(Data Grid)サーバ* との連携により、ショッピングカートサービスのデータトランザクションのパフォーマンスを最適化し、エンドユーザーの満足度を向上させます。また、*oc* コマンドラインツールを使ってOpenShift 4上にアプリケーションを簡単にデプロイすることができます。
 
-=== Goals of this lab
+=== このラボのゴール
 
-The goal is to develop advanced cloud-native applications on *Red Hat Runtimes* and deploy them on *OpenShift 4* including _single sign-on access management_ and _distributed cache manageemnt_. After this lab, you should end up with something like:
+目標は、*Red Hat Runtimes* 上で高度なクラウドネイティブアプリケーションを開発し、_シングルサインオンアクセス管理_ と _分散キャッシュ管理_ を含む *OpenShift 4* 上でデプロイすることです。このラボの後には、以下のようなものを完成させる必要があります。
 
 image::lab1-goal.png[goal, 700]
 
-=== 1. Deploying Inventory Service
+=== 1. インベントリサービスのデプロイ
 
-_Inventory Service_ serves inventory and availability data for retail products. Lets’s go through quickly how the inventory service works and built on *Quarkus* Java runtimes. Go to _Explorer: /projects_ in _CodeReady Workspaces_ Web IDE and expand *inventory-service* directory.
+_Inventory Service_ は、小売商品の在庫と在庫状況のデータを提供します。インベントリーサービスがどのように動作し、*Quarkus* Javaランタイム上に構築されているかを簡単に見てみましょう。_CodeReady Works_  Web IDE の _/projects_ に移動し、*inventory-service* ディレクトリを展開してください。
 
 image::codeready-workspace-inventory-project.png[inventory_service, 700]
 
-While the code is surprisingly simple, under the hood this is using:
+コードは驚くほどシンプルですが、内部ではこれを使用しています :
 
-* *RESTEasy* to expose the REST endpoints
-* *Hibernate ORM* with Panache to perform the CRUD operations on the database
+* REST エンドポイントを公開するための *RESTEasy*
+* データベースの CRUD 操作を行うための *Hibernate ORM* with Panache
 * *Maven* Java project structure
 
-_Hibernate ORM_ is the de facto JPA implementation and offers you the full breadth of an Object Relational Mapper. It makes complex mappings possible, but it does not make simple and common mappings trivial. Hibernate ORM with Panache focuses on making your entities trivial and fun to write in Quarkus.
+_Hibernate ORM_ は事実上の JPA 実装であり、Object Relational Mapper の全幅を提供します。複雑なマッピングを可能にしますが、単純でマッピングを退屈にするものではありません。Hibernate ORM with Panache は、Quarkus で書くのが楽しくなるように、エンティティを些細なものにすることに焦点を当てています。
 
-When you open `Inventory.java` in `src/main/java/com/redhat/cloudnative/` as below, you will understand how easy to create a domain model using Quarkus extension(https://quarkus.io/guides/hibernate-orm-panache-guide[Hibernate ORM with Panache^]).
+以下のように `src/main/java/com/redhat/cloudnative/` の `Inventory.java` を開くと、Quarkus の拡張機能( https://quarkus.io/guides/hibernate-orm-panache-guide[Hibernate ORM with Panache^] を使っていかに簡単にドメインモデルを作成できるかがわかると思います。)
 
 [source,java]
 ----
@@ -43,26 +43,23 @@ public class Inventory extends PanacheEntity {
 }
 ----
 
-* By extending _PanacheEntity_ in your entities, you will get an ID field that is auto-generated. If you require a custom ID strategy, you can extend _PanacheEntityBase_ instead and handle the ID yourself.
-* By using Use public fields, there is no need for functionless getters and setters (those that simply get or set the field). You simply refer to fields like Inventory.location without the need to write a Inventory.getLocation() implementation. Panache will auto-generate any getters and setters you do not write, or you can develop your own getters/setters that do more than get/set,
-which will be called when the field is accessed directly.
+* エンティティの中で _PanacheEntity_ を拡張することで、自動生成される ID フィールドが得られます。カスタムの ID 戦略が必要な場合は、代わりに _PanacheEntityBase_ を拡張して ID を自分で処理することができます。
+* Public fields を使うことで、関数のないゲッターやセッター(単にフィールドを取得したり設定したりするだけのもの)が不要になります。Inventory.getLocation() の実装を書かなくても、Inventory.location のようなフィールドを参照するだけです。Panache は、書かないゲッターやセッターを自動生成します。もしくはフィールドに直接アクセスしたときに呼び出される get/set 以上の機能を持つ独自の ゲッター/セッター を開発することもできます。
 
-The PanacheEntity superclass comes with lots of super useful static methods and you can add your own in your derived entity class, and much like traditional object-oriented programming it’s natural and recommended to place custom queries as close to the entity as possible, ideally within the entity definition itself. Users can just start using your entity Inventory by typing
-Inventory, and getting completion for all the operations in a single place.
+PanacheEntity スーパークラスには多くの便利な静的メソッドがあり、派生エンティティクラスに独自のメソッドを追加することができます。伝統的なオブジェクト指向プログラミングのように、カスタムクエリを可能な限りエンティティの近くに、理想的にはエンティティ定義自体の中に配置することが自然であり、推奨されています。ユーザーは、Inventory と入力するだけで、エンティティ Inventory を使い始めることができ、一箇所ですべての操作を完了させることができます。
 
-When an entity is annotated with _@Cacheable_, all its field values are cached except for collections and relations to other entities. This means the entity can be loaded without querying the database, but be careful as it implies the loaded entity might not reflect recent changes in the database.
+エンティティに _@Cacheable_ をアノテーションすると、コレクションと他のエンティティとの関係を除いて、すべてのフィールド値がキャッシュされます。これは、データベースを照会することなくエンティティをロードできることを意味しますが、ロードされたエンティティがデータベースの最近の変更を反映していない可能性があることを意味するので注意が必要です。
 
-Next, let’s find out how _inventory service_ exposes _RESTful APIs_ on Quarkus. Open `InventoryResource.java` in `src/main/java/com/redhat/cloudnative/` and you will see the following code sniffet.
+次に、_inventory service_ がどのようにして Quarkus 上で _RESTful API_ を公開しているかを調べてみましょう。`src/main/java/com/redhat/cloudnative/` の `InventoryResource.java` を開くと、以下のようなコードスニペットが表示されます。
 
-The REST services defines two endpoints:
+REST サービスは二つのエンドポイントを定義します :
 
-* `/api/inventory` that is accessible via `HTTP GET` which will return all known product Inventory entities as JSON
-* `/api/inventory/<itemId>` that is accessible via `HTTP GET` at for example `/inventory/329199` with the last path parameter
-being the location which we want to check its inventory status.
+* これは `HTTP GET` でアクセスできる `/api/inventory` であり、これはすべての既知の製品インベントリエンティティを JSON として返します。
+* 例えば `/inventory/329199` のように、`HTTP GET` でアクセスできる `/api/inventory/<itemId>` は、最後のパスパラメータにインベントリの状態を確認したい場所を指定します。
 
 image::inventoryResource.png[inventory_service, 700]
 
-*In Development*, we will configure to use local _in-memory H2 database_ for local testing, as defined in `src/main/resources/application.properties`:
+*開発中では*, src/main/resources/application.properties`で定義されているように、ローカルのテストに _in-memory H2 database_ を使用するように設定します :
 
 [source,none]
 ----
@@ -76,14 +73,14 @@ image::inventoryResource.png[inventory_service, 700]
 %dev.quarkus.hibernate-orm.log.sql=false
 ----
 
-Let’s run the inventory application locally using `maven plugin command` via CodeReady Workspaces Terminal:
+CodeReady Workspaces Terminal経由で `maven plugin command` を使ってローカルでインベントリアプリケーションを実行してみましょう:
 
 [source,sh,role="copypaste"]
 ----
 mvn quarkus:dev -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/inventory-service
 ----
 
-You should see a bunch of log output that ends with:
+以下で終わるログ出力が表示されるはずです :
 
 [source,console]
 ----
@@ -93,29 +90,28 @@ You should see a bunch of log output that ends with:
 2020-03-19 00:55:12,890 INFO  [io.quarkus] (main) Installed features: [agroal, cdi, hibernate-orm, hibernate-orm-panache, jdbc-h2, narayana-jta, resteasy, resteasy-jsonb, smallrye-health]
 ----
 
-CodeReady will also detect that the Quarkus app opens port `5005` (for debugging) and `8080` (for web requests). Do not open port 5005, but when prompted, open the port `8080`, which opens a small web browser in CodeReady:
+CodeReady は、Quarkus アプリがポート `5005` (デバッグ用)と `8080` (ウェブリクエスト用)を開いていることも検出します。ポート 5005 は開かず、プロンプトが表示されたらポート `8080` を開いてください。
 
-You should see a bunch of log output and Theia popup shows the endpoint for your local application. Click on `Open Link` then you
-will see *Coolstore Inventory* page on you left side. `Close` the popup window.
+ログ出力の束が表示され、Theia のポップアップにはローカルアプリケーションのエンドポイントが表示されているはずです。`Open Link` クリックすると、左側に *Coolstore Inventory* ページが表示されます。ポップアップウィンドウを `Close` してください。
 
 image::open-port.png[Inventory RESTful Service, 700]
 
-You should see the inventory web frontend directly in CodeReady (you may need to click the _reload_ icon):
+CodeReadyでインベントリのWebフロントエンドを直接見ることができるはずです( _reload_ アイコンをクリックする必要があるかもしれません) :
 
 image::inventory-codeready.png[Inventory RESTful Service, 700]
 
-Open a *new* CodeReady Workspaces Terminal:
+新しい *CodeReady Workspaces* ターミナルを開きます。
 
 image::codeready-workspace-terminal.png[Inventory RESTful Service, 700]
 
-and invoke the RESTful endpoint using the following CURL commands.
+以下の CURL コマンドをしよすいて RESTful endpoint を呼び出します.
 
 [source,sh,role="copypaste"]
 ----
 curl http://localhost:8080/api/inventory | jq
 ----
 
-The output looks like:
+出力は以下のようになります :
 
 [source,json]
 ----
@@ -136,26 +132,25 @@ The output looks like:
   }
 ----
 
-Be sure to terminate the running Quarkus development via kbd:[CTRL+C] (or kbd:[Command+C] on Mac OS).
+実行中のQuarkus開発を kbd:[CTRL+C] (Mac OSの場合はkbd:[Command+C] )で終了させてください。
 
-*In production*, the inventory service will connect to _PostgeSQL_ on OpenShift cluster.
+*本番* では、インベントリサービスは OpenShift クラスタ上の _PostgeSQL_ に接続します。
 
-We will use _Quarkus extension_ to add *PostgreSQL JDBC Driver*. Go back to CodeReady Workspaces Terminal and run the following
-maven plugin:
+今回は _Quarkus extension_ を使用して、*PostgreSQL JDBC Driver* を追加します。CodeReady Workspaces Terminal に戻り、以下の maven プラグインを実行します :
 
 [source,sh,role="copypaste"]
 ----
 mvn quarkus:add-extension -Dextensions="jdbc-postgresql" -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/inventory-service
 ----
 
-You should see in the output:
+以下の出力を確認できます :
 
 [source,console]
 ----
 ✅ Adding extension io.quarkus:quarkus-jdbc-postgresql
 ----
 
-First, open a new brower with the {{ CONSOLE_URL }}[OpenShift web console^]:
+まず、{{console_url }}[OpenShift web console^] で新規ブラウザを開きます :
 
 image::openshift_login.png[openshift_login, 700]
 
@@ -164,30 +159,28 @@ Login using:
 * Username: `{{ USER_ID }}`
 * Password: `{{ OPENSHIFT_USER_PASSWORD }}`
 
-You will see a list of projects to which you have access:
+アクセスできるプロジェクトのリストが表示されます :
 
 image::openshift_landing.png[openshift_landing, 700]
 
 [NOTE]
 ====
-The project displayed in the landing page depends on which labs you will run today. If you will develop
-`Service Mesh and Identity` then you will see pre-created projects as the above screeenshot.
+ランディングページに表示されるプロジェクトは、今日実行するラボによって異なります。`Service Mesh and Identity` を開発する場合は、上記のようにあらかじめ作成されたプロジェクトが表示されます。
 ====
 
-Open the {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^].
+{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}}-cloudnativeapps[Topology View^] を開きます。
 
-Our production inventory microservice will use an external database (PostgreSQL) to house inventory data. First, deploy a new
-instance of PostgreSQL. Click *+Add* on the left, on the _Database_ box on the *{{ USER_ID }}-cloudnativeapps* project overview:
+私たちの生産インベントリマイクロサービスは、インベントリデータを格納するために外部データベース (PostgreSQL) を使用します。まず、PostgreSQL の新しいインスタンスを配置します。左側の *{{ USER_ID }}-cloudnativeapps* プロジェクト概要の_Database_ボックスで *+Add* をクリックします :
 
 image::db.png[db, 700]
 
-Type in `postgres` in the search box, and click on the *PostgreSQL (ephemeral)*:
+検索ボックスに `postgres` と入力し、*PostgreSQL (ephemeral)* をクリックします:
 
 image::db-postgres.png[db, 700]
 
-Click on *Instantiate Template* and fill in the following fields, leaving the others as their default values:
+*Instantiate Template* して以下の項目を入力してください :
 
-* *Namespace*: _choose `{{ USER_ID }}-cloudnativeapps` for the first Namespace. Leave the second one as `openshift`_
+* *Namespace*: _最初のネームスペースに `{{ USER_ID }}-cloudnativeapps` を選択してください。二つ目のネームスペースは `openshift` のまま残してください _
 * *Database Service Name*: `inventory-database`
 * *PostgreSQL Connection Username*: `inventory`
 * *PostgreSQL Connection Password*: `mysecretpassword`
@@ -195,19 +188,19 @@ Click on *Instantiate Template* and fill in the following fields, leaving the ot
 
 image::db-postgres-inventory-values.png[db, 700]
 
-This will deploy the database to our new project. Click on the {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] to see it:
+これでデータベースが新しいプロジェクトにデプロイされます。{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}}-cloudnativeapps[Topology View^] をクリックすると表示されます :
 
 image::inventory-database-deployment.png[inventory_db_deployments, 700]
 
 
-Although your CodeReady workspace is running on the Kubernetes cluster, it’s running with a default restricted _Service Account_ that prevents you from creating most resource types. If you’ve completed other modules, you’re probably already logged in, but let’s login again: click on *Login to OpenShift*, and enter your given credentials:
+CodeReady Workspace は Kubernetes クラスタ上で実行されていますが、デフォルトの制限付き _Service Account_ で実行されているため、ほとんどのリソースタイプを作成することができません。他のモジュールを完了している場合は、おそらくすでにログインしていると思いますが、もう一度ログインしてみましょう: *Login to OpenShift* をクリックして、与えられた資格情報を入力します :
 
 * Username: `{{ USER_ID }}`
 * Password: `{{ OPENSHIFT_USER_PASSWORD }}`
 
 image::cmd-login.png[login,700]
 
-You should see something like this (the project names may be different):
+このようなものが表示されるはずです（プロジェクト名が異なる場合があります）:
 
 [source,none]
 ----
@@ -228,10 +221,10 @@ Welcome! See 'oc help' to get started.
 
 [NOTE]
 ====
-After you log in using *Login to OpenShift*, the terminal is no longer usable as a regular terminal. You can close the terminal window. You will still be logged in when you open more terminals later!
+*Login to OpenShift* でログインした後は、通常のターミナルとして使用できなくなります。ターミナルのウィンドウは閉じることができます。後からさらに端末を開いてもログインしたままになります。
 ====
 
-Now let's deploy the application itself. Run the following command which will build and deploy using the OpenShift extension:
+では、アプリケーション自体をデプロイしてみましょう。以下のコマンドを実行すると、OpenShift 拡張機能を使用してビルドとデプロイが行われます :
 
 [source,sh,role="copypaste"]
 ----
@@ -239,18 +232,18 @@ oc project {{ USER_ID }}-cloudnativeapps && \
 mvn clean compile package -DskipTests -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/inventory-service
 ----
 
-The output should end with `BUILD SUCCESS`.
+出力は `BUILD SUCCESS` で終わるべきです。
 
-Finally, make sure it's actually done rolling out:
+最後に、実際にロールアウトが完了したことを確認してください :
 
 [source,sh,role="copypaste"]
 ----
 oc rollout status -w dc/inventory
 ----
 
-Wait for that command to report *replication controller _inventory-1_ successfully rolled out* before continuing.
+続ける前に、そのコマンドが *replication controller _inventory-1_ successfully rolled out* を報告するのを待ちます。
 
-And label the items with proper icons:
+そして、アイテムには適切なアイコンでラベルを貼ります :
 
 [source,sh,role="copypaste"]
 ----
@@ -260,26 +253,25 @@ oc annotate dc/inventory app.openshift.io/connects-to=inventory-database --overw
 oc annotate dc/inventory app.openshift.io/vcs-ref=ocp-4.5 --overwrite
 ----
 
-Back on the {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^], make sure it's done deploying (dark blue circle):
+{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] に戻り, デプロイが完了していることを確認します(紺色の丸) :
 
 image::inventory_topology.png[inventory, 700]
 
-Click on the small arrow icon as shown above and you will see inventories:
+上図のように小さな矢印のアイコンをクリックすると、在庫が表示されます :
 
 image::inventory_topology_openurl.png[inventory, 700]
 
-So now `Inventory` service is deployed to OpenShift. You can also see it in the Project Status in the OpenShift Console with its single replica running in 1 pod, along with the Postgres database pod.
+これで `Inventory` サービスが OpenShift にデプロイされました。OpenShift Console の Project Status でも、Postgres データベースポッドと一緒に1つのポッドでシングルレプリカが実行されているのが確認できます。
 
-=== 2. Deploying Catalog Service
+=== 2. カタログサービスのデプロイ
 
-_Catalog Service_ serves products and prices for retail products. Lets’s go through quickly how the catalog service works and built on *Spring Boot* Java runtimes. Go to _Explorer: /projects_ in _CodeReady Workspaces_ Web IDE and expand *catalog-service* directory.
+_カタログサービス_ は、小売商品の商品と価格を提供します。カタログサービスがどのように動作し、*Spring Boot* Javaランタイム上に構築されているかを簡単に見てみましょう。_CodeReady Workspaces_ の _Explorer. _CodeReady Workspaces_ Web IDEの/projects_に移動して、*catalog-service*ディレクトリを展開します。
 
 image::codeready-workspace-catalog-project.png[catalog, 700]
 
-First of all, we won’t implement the catalog application to retrieve data because of all funtions are already built when we imported this project from Git server. There’re a few interesting things what we need to take a look at this Spring Boot
-application before we will deploy it to OpenShift cluster.
+まず、Git サーバーからプロジェクトをインポートした時点で、すべての関数が構築されているので、データを取得するためのカタログアプリケーションは実装しません。OpenShift クラスタにデプロイする前に、この Spring Boot アプリケーションを見ておくべきことがいくつかあります。
 
-This catalog service is not using the default BOM (Bill of material) that Spring Boot projects typically use. Instead, we are using a BOM provided by Red Hat as part of the http://snowdrop.me/[Snowdrop^] project.
+このカタログサービスは、Spring Boot プロジェクトが通常使用するデフォルトの BOM (部品表) を使用していません。代わりに、Red Hat が http://snowdrop.me/[Snowdrop^] プロジェクトの一部として提供している BOM を使用しています。
 
 [source,xml]
 ----
@@ -294,32 +286,31 @@ This catalog service is not using the default BOM (Bill of material) that Spring
 
 image::catalog-pom.png[catalog, 700]
 
-Also, catalog service calls the inventory service that we deployed earlier using REST to retrieve the inventory status and include
-that in the response. Open `CatalogService.java` in `src/main/java/com/redhat/coolstore/service` directory via Project Explorer
-and how `read()` and `readAll()` method work:
+また、カタログサービスは、先ほど展開したインベントリサービスをRESTを使って呼び出して、インベントリの状態を取得し、インクルードしています。
+レスポンスの中にそれが表示されます。プロジェクトエクスプローラで `src/main/java/com/redhat/coolstore/service` ディレクトリの `CatalogService.java` を開き、`read()メソッド` と readAll() メソッドがどのように動作するかを確認してください :
 
 image::catalog-service-codes.png[catalog, 700]
 
-Build and deploy the project using the following command, which will use the maven plugin to deploy via CodeReady Workspaces Terminal:
+以下のコマンドを使用してプロジェクトをビルドし、CodeReady Workspaces Terminal を介してデプロイするために maven プラグインを使用します :
 
 [source,sh,role="copypaste"]
 ----
 mvn clean package spring-boot:repackage -DskipTests -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/catalog-service
 ----
 
-The build and deploy may take a minute or two. Wait for it to complete. You should see a `BUILD SUCCESS` at the end of the build output.
+ビルドとデプロイには 1～2 分かかる場合があります。完了するのを待ちましょう。ビルド出力の最後に `BUILD SUCCESS` が表示されるはずです。
 
-Our `production` catalog microservice will use an external database (PostgreSQL) to house inventory data. Visit the {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^].
+私たちの `production` カタログマイクロサービスは、インベントリデータを格納するために外部データベース (PostgreSQL) を使用します。コンソールURL }}}/topology/ns/{{ USER_ID }}}-cloudnativeapps[Topology View^]にアクセスしてください。
 
-Click *+Add* on the left, on the _Database_ box on the project overview:
+プロジェクト概要の _Database_ ボックスの左側にある *+Add* をクリックします :
 
 image::db.png[db, 700]
 
-Type in `postgres` in the search box, and click on the *PostgreSQL (ephemeral)*:
+検索ボックスに `postgres` と入力し、*PostgreSQL (ephemeral)* をクリックします :
 
 image::db-postgres.png[db, 700]
 
-Click on *Instantiate Template* and fill in the following fields, leaving the others as their default values:
+*Instantiate Template* をクリックして、以下の項目を入力してください: 
 
 * *Namespace*: _choose `{{ USER_ID }}-cloudnativeapps` for the first Namespace. Leave the second one as `openshift`_
 * *Database Service Name*: `catalog-database`
@@ -329,23 +320,23 @@ Click on *Instantiate Template* and fill in the following fields, leaving the ot
 
 image::db-catalog-postgres-fields.png[db, 700]
 
-This will deploy the database to our catalog project. Click on the {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] to see it.
+これでデータベースがカタログプロジェクトにデプロイされます。{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}}-cloudnativeapps[Topology View^] をクリックすると表示されます。
 
-Create a build configuration for your application using OpenJDK base container image in OpenShift:
+OpenShiftでOpenJDKベースのコンテナイメージを使用してアプリケーションのビルド構成を作成します :
 
 [source, properties, role="copypaste"]
 ----
 oc new-build registry.access.redhat.com/ubi8/openjdk-11 --binary --name=catalog -l app=catalog
 ----
 
-Start and watch the build, which will take about minutes to complete:
+開始して、数分程度で完成するビルドを見てください :
 
 [source,sh,role="copypaste"]
 ----
 oc start-build catalog --from-file=$CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/catalog-service/target/catalog-1.0.0-SNAPSHOT.jar --follow
 ----
 
-Once the build is done, we’ll deploy it as an OpenShift application and override the spring profile to use our _production_ values. We will also give it some labels to make it look nice. Run this command:
+ビルドが完了したら、OpenShift アプリケーションとしてデプロイし、スプリングプロファイルをオーバーライドして _production_ の値を使用します。また、見栄えを良くするためにいくつかのラベルを与えます。このコマンドを実行します :
 
 [source,sh,role="copypaste"]
 ----
@@ -357,53 +348,53 @@ oc annotate dc/catalog app.openshift.io/vcs-uri=https://github.com/RedHat-Middle
 oc annotate dc/catalog app.openshift.io/vcs-ref=ocp-4.5 --overwrite
 ----
 
-Finally, make sure it’s actually done rolling out. Visit the {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] for the catalog, and ensure you get the blue circles!
+最後に、実際にロールアウトが完了していることを確認します。カタログは {{console_url }}/topology/ns/{{{user_id }}}-cloudnativeapps[Topology View^] にアクセスして、青い丸が表示されていることを確認してください!
 
 image::inventory-catalog-topology.png[catalog, 700]
 
-And then access the http://catalog-{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN}}[Catalog Web frontend^] and ensure you get the expected inventory quantity (and not `-1`), you may need to reload the page if the app isn't initialized yet:
+そして、http://catalog-{{{ USER_ID }}}-cloudnativeapps.{{ ROUTE_SUBDOMAIN}}}[Catalog Web frontend^] にアクセスして、期待される在庫量を取得していることを確認してください（not `-1`）:
 
 image::catalog.png[catalog, 700]
 
-So now `Catalog` service is deployed to OpenShift. You can also see it in the Project Status in the OpenShift Console with running 4 pods such as catalog, catalog-database, inventory, and inventory-database.
+これで `Catalog` サービスが OpenShift にデプロイされました。OpenShift Console のプロジェクトステータスでも、カタログ、カタログデータベース、インベントリ、インベントリデータベースの4つのポッドが稼働しているのが確認できます。
 
 === 3. Developing and Deploying Shopping Cart Service
 
-By now, you have deployed some of the essential elements for the Coolstore application. However, an online shop without a cart means no checkout experience. In this section, we are going to implement the Shopping Cart; in our Microservice world, we are going to call it the *cart service* and our java artifact/repo is called the *cart-service*.
+これまでに、Coolstore アプリケーションに必要な要素のいくつかを配備しました。しかし、カートのないオンライン・ショップでは、チェックアウトの経験がありません。このセクションでは、ショッピングカートを実装します。マイクロサービスの世界では、これを *cartサービス* と呼び、Javaアーティファクト/レポを *cartサービス* と呼びます。
 
-The Cart service is RESTful and built with Quarkus using Red Hat’s Distributed _Data Grid_ technology. It stores all shopping cart data and assigns a unique id to each. It uses the Quarkus _Infinispan client_ to do this (_Infinispan_ is the name of the upstream project that Red Hat Data Grid is based on). The Shopping cart makes a call via the Quarkus REST client to fetch all items in the Catalog. In the end, Shopping cart also pushes messages to a _Kafka_ for each order, when the user is checking out. For that, we use the Quarkus Kafka client.
+Cartサービスは RESTful で、Red Hat の Distributed _Data Grid_ テクノロジーを使用して Quarkus で構築されています。すべてのショッピングカートのデータを保存し、それぞれに一意の ID を割り当てます。これを行うには、Quarkus の _Infinispan_ クライアント_を使用します（_Infinispan_は、Red Hat Data Gridがベースになっているアップストリームプロジェクトの名前です）。ショッピングカートは、Quarkus RESTクライアントを介して呼び出しを行い、カタログ内のすべてのアイテムを取得します。最終的に、ショッピングカートはまた、ユーザーがチェックアウトしているときに、注文ごとに_Kafka_にメッセージをプッシュします。そのために、Quarkus Kafkaクライアントを使用します。
 
-What is a _Shopping Cart_ in our context? A Shopping cart has a list of Shopping Items. Each item has a _quantity_, and other fields like discounts and promotional details. We will see these in more detail when we look at our model.
+ショッピングカートとは何ですか？ショッピングカートはショッピングアイテムのリストを持っています。各アイテムには _quantity_ と、割引やプロモーションの詳細などの他のフィールドがあります。これらについては、モデルを見るときに詳しく見ていきましょう。
 
-For this lab, we are using CodeReady Workspaces. Make sure you have the following project open in your workspace. Lets’s go through quickly how the cart service works and is built on _Quarkus_ Java runtimes. Go to _Explorer_ in CodeReady Workspaces and expand the *cart-service* directory.
+このラボでは、CodeReady ワークスペースを使用します。ワークスペースで以下のプロジェクトを開いていることを確認してください。ここでは、カートサービスがどのように動作し、_Quarkus_ Javaランタイム上に構築されているかを簡単に説明します。CodeReady Workspaces の _Explorer_ に移動し、*cart-service* ディレクトリを展開します。
 
 image::codeready-workspace-cart-project.png[cart, 700]
 
-We are going to use the Red Hat Distributed _Data Grid_ for caching all the users' carts.
+Red Hat Distributed _Data Grid_ を使用して、すべてのユーザーのカートをキャッシュします。
 
-Let's create a simple version of the *cache service* in our cluster. Open the Terminal in your CodeReady workspace and run the following command:
+クラスタ内の *cacheサービス* の簡単なバージョンを作成してみましょう。CodeReady ワークスペースでターミナルを開き、以下のコマンドを実行します :
 
 [source,sh,role="copypaste"]
 ----
 oc new-app jboss/infinispan-server:10.0.0.Beta3 --name=datagrid-service
 ----
 
-This will create a single instance of the Data Grid server to store our shopping carts.
+これにより、ショッピングカートを格納するためのデータグリッドサーバのインスタンスが1つ作成されます。
 
-Click on the {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] to see it.
+{{console_url }}/topology/ns/{{user_id }}}-cloudnativeapps[トポロジービュー^] をクリックすると表示されます。
 
-Now that our cache service a.k.a datagrid-service is deployed. We want to ensure that everything in our cart is persisted in this blazing fast cache. It will help us when we have a few million users per second on a black Friday.
+これでキャッシュサービス、別名データグリッドサービスがデプロイされました。私たちは、カート内のすべてのものがこの高速なキャッシュに保存されていることを確認したいと思っています。これは、ブラックフライデーに毎秒数百万人のユーザーがいるときに役立ちます。
 
-Following is what we need to do:
+次のことを行う必要があります :
 
-* Model our data
-* Choose how we store the data
-* Create a marshaller for our data
-* Inject our cache connection into the service
+* データのモデル化をおこなう
+* データの保存方法を選択
+* データのマーシャルを作成する
+* キャッシュ接続をサービスに注入する
 
-We have made this choice easier for you. The default serialization is done using a library based on *protobuf*. We need to define the protobuf schema and a marshaller for each user type(s).
+この選択をより簡単にしました。デフォルトのシリアライズは *protobuf* をベースにしたライブラリを使用して行われます。protobuf スキーマと各ユーザタイプ用のマーシャラーを定義する必要があります。
 
-Let’s take a look at our `cart.proto` file in `cart-service/src/main/resources/META-INF`:
+`cart-service/src/main/resources/META-INF` の `cart.proto` ファイルを見てみましょう :
 
 [source,java]
 ----
@@ -433,10 +424,10 @@ message Promotion {
   required double percentOff = 2;
 }
 ----
-<1> So our `ShoppingCart` has a list (`repeated`) of `ShoppingCartItem`
-<2> Each `ShoppingCartItem` has a `Product`
+<1> つまり、`ShoppingCart` は `ShoppingCartItem` のリスト (`repeated`) を持っていることになります。
+<2> 各 `ShoppingCartItem` は `Product` を持ちます。
 
-But we haven't defined the `Product` yet. Add this code below the `//TODO ADD Product` marker:
+しかし、まだ `Product` を定義していない。このコードを `//TODO ADD Product` マーカーの下に追加する。
 
 [source,java,role="copypaste"]
 ----
@@ -448,9 +439,9 @@ message Product {
 }
 ----
 
-*Great!* Now we have the Product defined in our proto model. We should also ensure that this model also exists as *POJO*(Plain Old Java Object), that way our *REST Endpoint*, or *Cache* will be able to directly serialize and desrialize the data.
+*これで、プロトモデルに製品が定義されました。また、このモデルが POJO* (Plain Old Java Object)としても存在することを確認する必要があります。そうすれば、*RESTエンドポイント* や *Cache* が直接データをシリアライズしてデシリアライズすることができます。
 
-Next, open `Product.java` in `cart-service/src/main/java/com/redhat/cloudnative/model`:
+次に、`cart-service/src/main/java/com/redhat/cloudnative/model` 内の `Product.java` を開く : 
 
 [source,java]
 ----
@@ -460,11 +451,11 @@ Next, open `Product.java` in `cart-service/src/main/java/com/redhat/cloudnative/
     private double price;
 ----
 
-Notice that the entities match our proto file. The rest or Getters and Setters, so we can read and write data into them.
+実体が私たちのプロトファイルと一致していることに注目してください。残りの部分、またはゲッターとセッターなので、それらにデータを読み書きすることができます。
 
-Let's go ahead and create a *Marshaller* for our Product class which will do exactly what we intend, read and write to our cache.
+先に進み、Productクラス用の*Marshaller*を作成してみましょう。これは、キャッシュへの読み書きを正確に行います。
 
-Create a new Java class called `ProductMarshaller.java` in `com.redhat.cloudnative.model` and copy the below code into the file:
+`com.redhat.cloudnative.model` の中に `ProductMarshaller.java` という名前の Java クラスを新規作成し、以下のコードをファイルにコピーする。
 
 [source,java,role="copypaste"]
 ----
@@ -517,17 +508,17 @@ public class ProductMarshaller implements MessageMarshaller<Product> {
 }
 ----
 
-So now we have the capability to read from a *ProtoStream* and *Write* to it. And this will be done directly into our cache. We have already created the other model classes and mashallers, feel free to look around.
+これで、*ProtoStream* からの読み込みと *Write* ができるようになりました。そして、これはキャッシュに直接実行されます。他のモデルクラスとマッシャーは既に作成済みです。
 
-Now it's time to configure our *RemoteCache*, since its not embedded into our service. Open the `Producers.java` file in the `com.redhat.cloudnative` directory/package.
+それでは、*RemoteCache* を設定してみましょう。`com.redhat.cloudnative` ディレクトリ/パッケージ内の `Producers.java` ファイルを開きます。
 
-We use the producer to ensure our RemoteCache gets instantiated. We create methods called getCache and getConfigBuilder
+プロデューサを使用して RemoteCache を確実にインスタンス化します。getCache と getConfigBuilder というメソッドを作成します。
 
-* getConfigBuilder: sets up the basic cache config
-* getCache, sets up our marshallers and proto files
-* other config properties are injected at runtime
+* getConfigBuilder: 基本的なキャッシュ設定を設定します
+* getCache、マーシャラーとプロトファイルをセットアップします
+* その他の設定プロパティは実行時に注入されます
 
-Add this code below the `// TODO Add getCache` and `// TODO add getConfigBuilder` marker:
+このコードを `// TODO Add getCache` と `// TODO add getConfigBuilder` マーカーの下に追加します :
 
 [source,java,role="copypaste"]
 ----
@@ -560,9 +551,9 @@ Add this code below the `// TODO Add getCache` and `// TODO add getConfigBuilder
     }
 ----
 
-*Perfect!* Now we have all the building blocks ready to use the cache. Let's start using our cache.
+これで、キャッシュを使用するためのすべてのビルディングブロックの準備が整いました。キャッシュを使い始めましょう。
 
-Next we need to make sure we will inject our cache in our service. Open `com.redhat.cloudnative.service.ShoppingCartServiceImpl` and add this at the `// TODO Inject RemoteCache` marker:
+次に、サービスにキャッシュを注入することを確認する必要があります。`com.redhat.cloudnative.service.ShoppingCartServiceImpl` を開き、`// TODO Inject RemoteCache` マーカーに追加します :
 
 [source,java,role="copypaste"]
 ----
@@ -571,14 +562,14 @@ Next we need to make sure we will inject our cache in our service. Open `com.red
     RemoteCache<String, ShoppingCart> carts;
 ----
 
-The cart is quite simple; All the information from the browser i.e., via our *Angular App* is via _JSON_ at the _/api/cart_ endpoint:
+カートは非常にシンプルです。ブラウザからの情報、つまり *Angular App* からの情報はすべて _/api/cart_ エンドポイントで _JSON_ を経由しています :
 
-* `GET /{cartId}` gets the items in the cart, or creates a new unique ID if one is not present.
-* `POST /{cartId}/{itemId}/{quantity}` will add items to the cart.
-* `DELETE /{cartId}/{itemId}/{quantity}` will remove items from the cart.
-* `POST /checkout/{cartId}` will remove the items and invoke the checkout procedure.
+* `GET /{cartId}` はカート内のアイテムを取得
+* `POST /{cartId}/{itemId}/{quantity}` はカートにアイテムを追加
+* `DELETE /{cartId}/{itemId}/{quantity}` はカートからアイテムを削除
+* `POST /checkout/{cartId}` はアイテムを削除し、チェックアウト手続きを呼び出します。
 
-Let’s take a look at how we do this with Quarkus. In our *cart-service* project and in our main package i.e., `com.redhat.cloudnative` is the `CartResource`. Let’s take a look at the getCart method.
+Quarkus を使った方法を見てみましょう。私たちの *cart-service* プロジェクトとメインパッケージの `com.redhat.cloudnative` には `CartResource` があります。getCart メソッドを見てみましょう。
 
 At the `// TODO ADD getCart method` marker, add this method:
 
@@ -589,13 +580,13 @@ At the `// TODO ADD getCart method` marker, add this method:
     }
 ----
 
-The code above is using the `ShoppingCartService`, which is injected into the `CartResource` via the Dependency Injection. The `ShoppingCartService` take a `cartId` as a parameter and returns the associated ShoppingCart. So that’s perfect, however, for our Endpoint i.e., CartResource to respond, we need to define a couple of things:
+上のコードは `ShoppingCartService` を利用しているが、これは依存性インジェクションによって `CartResource` に注入される。この `ShoppingCartService` は `cartId` をパラメータとして受け取り、関連するショッピングカートを返す。これで完璧ですが、エンドポイントである CartResource が応答するためには、いくつかのことを定義する必要があります :
 
-* The type of HTTPRequest
-* The type of data it can receive
-* The path it resolves too
+* HTTPRequest のタイプ
+* 受信できるデータの種類
+* 解決するパス
 
-Add the following code on top of the `getCart` method
+以下のコードを `getCart` メソッドの先頭に追加します
 
 [source,java,role="copypaste"]
 ----
@@ -605,32 +596,31 @@ Add the following code on top of the `getCart` method
     @Operation(summary = "get the contents of cart by cartId")
 ----
 
-We have now successfully stated that the method adheres to a GET request and accepts data in *plain text*. The path would be `/api/cart/{cartId}` finally, we add the `@Operation` annotation for some documentation, which is important for other developers using our service.
+これで、メソッドが GET リクエストに準拠し、*プレーンテキスト* でデータを受け付けることに成功しました。パスは `/api/cart/{cartId}` になります。最後に、いくつかのドキュメントを作成するために `@Operation` アノテーションを追加します。
 
-Take this opportunity to look at some of the other methods. You will find `@POST` and `@DELETE` and also the paths they adhere to. This is how we can construct a simple endpoint for our application.
+この機会に他のメソッドのいくつかを見てみましょう。`@POST` と `@DELETE`、そしてそれらが従うパスを見つけることができるでしょう。これは、アプリケーションのためのシンプルなエンドポイントを構築する方法です。
 
 [NOTE]
 ====
-There are other *// TODO* markers and commented-out code we will use later. Leave them alone for now.
+他にも *//TODO* マーカーやコメントアウトしたコードは後ほど使用します。今のところ、それらは放っておいてください。
 ====
 
-Quarkus also offers the ability to automatically generate OpenShift resources based on sane default and user supplied configuration. The OpenShift extension is actually a wrapper extension that brings together the [kubernetes](https://quarkus.io/guides/deploying-to-kubernetes) and [container-image-s2i](https://quarkus.io/guides/container-image#s2i) extensions with defaults so that it’s easier for the user to get started with Quarkus on OpenShift.
+Quarkus では、まともなデフォルト設定とユーザーが提供する設定に基づいて OpenShift リソースを自動的に生成する機能も提供しています。OpenShift 拡張は、実際には [kubernetes](https://quarkus.io/guides/deploying-to-kubernetes) と [container-image-s2i](https://quarkus.io/guides/container-image#s2i) の拡張をデフォルトでまとめたラッパー拡張であり、ユーザーが OpenShift 上で Quarkus を使い始めやすいようにしています。
 
-Add _openshift_ extension via CodeReady Workspaces Terminal:
+CodeReady Workspaces Terminal 経由で _openshift_ 拡張機能を追加します :
 
 [source,sh,role="copypaste"]
 ----
 mvn quarkus:add-extension -Dextensions="openshift" -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/cart-service
 ----
 
-you will see:
+以下が確認できます:
 
 ✅ Adding extension io.quarkus:quarkus-openshift
 
-Quarkus supports the notion of _configuration profiles_. These allows you to have multiple configurations in the same file and
-select between then via a _profile name_.
+Quarkusでは、_configuration profiles_ という概念をサポートしています。これにより、同じファイル内に複数の設定を持つことができ、 _プロファイル名_ を使用してその中から選択することができます。
 
-Let’s `add` the following variables at the `# TODO: Add for OpenShift extension` marker in _src/main/resources/application.properties_:
+_src/main/resources/application.properties_ の `# TODO: Add for OpenShift extension` マーカーに以下の変数を `追加` してみましょう。
 
 [source,shell,role="copypaste"]
 ----
@@ -642,32 +632,32 @@ quarkus.openshift.expose=true<5>
 quarkus.openshift.labels.app.openshift.io/runtime=quarkus<6>
 ----
 
-<1> We are using self-signed certs in this simple example, so this simply says to the extension to trust them.
-<2> Instructs the extension to build a container image
-<3> Instructs the extension to deploy to OpenShift after the container image is built
-<4> Instructs the extension to generate and create the OpenShift resources (like `DeploymentConfig` and `Service`) after building the container
-<5> Instructs the extension to generate an OpenShift `Route`.
-<6> Adds a nice-looking icon to the app when viewing the OpenShift Developer Toplogy
+<1> この単純な例では自己署名証明書を使用しているので、これは単に拡張モジュールに信頼するように言っているだけです。
+<2> コンテナイメージを構築するように拡張機能に指示します。
+<3> コンテナイメージを構築した後、拡張機能をOpenShiftにデプロイするように指示します。
+<4> コンテナをビルドした後にOpenShiftリソース（`DeploymentConfig`や`Service`など）を生成・作成するように拡張機能に指示します。
+<5> OpenShiftの `Route` を生成するように拡張機能に指示します。
+<6> OpenShift Developer Toplogyの表示時にアプリに見栄えの良いアイコンを追加。
 
-Now let's deploy the application itself. Run the following command which will build and deploy using the OpenShift extension:
+では、アプリケーション自体をデプロイしてみましょう。以下のコマンドを実行すると、OpenShift拡張機能を使用してビルドとデプロイが行われます :
 
 [source,sh,role="copypaste"]
 ----
 mvn clean package -DskipTests -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/cart-service
 ----
 
-The output should end with `BUILD SUCCESS`.
+出力は `BUILD SUCCESS` で終わるべきである。
 
-Finally, make sure it's actually done rolling out:
+最後に、実際にロールアウトが完了したことを確認してください :
 
 [source,sh,role="copypaste"]
 ----
 oc rollout status -w dc/cart
 ----
 
-Wait for that command to report *replication controller _cart-1_ successfully rolled out* before continuing.
+コマンドが *replication controller _cart-1_ successfully rolled out* を報告するのを待ってから続行してください。
 
-And label the items with proper icons:
+そして、アイテムには適切なアイコンでラベルを貼ります :
 
 [source,sh,role="copypaste"]
 ----
@@ -677,35 +667,32 @@ oc annotate dc/cart app.openshift.io/connects-to=catalog,datagrid-service --over
 oc annotate dc/cart app.openshift.io/vcs-ref=ocp-4.5 --overwrite
 ----
 
-Finally, make sure it’s actually done rolling out. Visit the {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] for the catalog, and ensure you get the blue circles!
+最後に、実際にロールアウトが完了していることを確認します。カタログは {{console_url }}/topology/ns/{{{user_id }}}-cloudnativeapps[Topology View^] にアクセスして、青い丸が表示されていることを確認してください!
 
 image::cart-topology.png[catalog, 700]
 
-And then access the http://cart-{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN }}/swagger-ui[Cart Swagger UI^]:
+http://cart-{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN }}/swagger-ui[Cart Swagger UI^] にアクセスします :
 
 image::cart-swagger-ui.png[cart, 700]
 
-Notice that the documentation after the methods, this is an excellent way for other service developers to know what you intend to
-do with each service method. You can try to invoke the methods and see the output from the service. Hence an excellent way to test
-quickly as well.
+メソッドの後にドキュメントがあることに注意してください、これは他のサービス開発者が各サービスメソッドで何をしようとしているかを知るための優れた方法です。メソッドを呼び出してみて、サービスからの出力を見ることができます。したがって、迅速にテストするための優れた方法でもあります。
 
-=== 4. Developing and Deploying Order Service
+=== 4. オーダーサービスの開発と展開
 
-The Order Service manages all orders when customers checkout items in the shopping cart. Lets’s go through quickly how the order
-service get REST services to use the *MongoDB* database with *Quarkus* Java runtimes. Go to _Explorer: /projects_ in _CodeReady Workspaces_ Web IDE and expand *order-service* directory.
+オーダーサービスは、お客様がショッピングカートで商品をチェックアウトする際に、すべての注文を管理します。注文サービスが *Quarkus* Javaランタイムで *MongoDB* データベースを使用するための REST サービスを取得する方法を簡単に説明します。_CodeReady Workspaces_ Web IDE の _/projects_ に移動し、*order-service* ディレクトリを展開します。
 
 image::codeready-workspace-order-project.png[order, 700]
 
-The application built in _Quarkus_ is quite simple: the user can add elements in a list using _RESTful APIs_ and the list is updated. All the information between the client and the server are formatted as *JSON*. The elements are stored in _MongoDB_.
+_Quarkus_ で構築されたアプリケーションは非常にシンプルです : ユーザは _RESTful API_ を使用してリストに要素を追加することができ、リストは更新されます。クライアントとサーバー間のすべての情報は *JSON* としてフォーマットされています。要素は _MongoDB_ に保存されます。
 
-Execute the following command for adding Maven Dependencies using Quarkus Extensions via CodeReady Workspaces Terminal:
+CodeReady Workspaces Terminal 経由で Quarkus Extensions を使用してMavenの依存関係を追加するには、以下のコマンドを実行します :
 
 [source,sh,role="copypaste"]
 ----
 mvn quarkus:add-extension -Dextensions="resteasy-jsonb,mongodb-client" -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/order-service
 ----
 
-You should see in the output:
+アウトプットを見ることができます :
 
 [source,console]
 ----
@@ -713,26 +700,26 @@ You should see in the output:
 ✅ Adding extension io.quarkus:quarkus-mongodb-client
 ----
 
-This command generates a Maven structure importing the RESTEasy/JAX-RS, JSON-B and MongoDB Client extensions. After this, the quarkus-mongodb-client extension has been added to your *pom.xml*.
+このコマンドは、RESTEasy/JAX-RS、JSON-B、MongoDBクライアント拡張機能をインポートする Maven 構造体を生成します。この後、quarkus-mongodb-client 拡張機能が *pom.xml* に追加されました。
 
 image::order-pom-dependency.png[order, 700]
 
-Before we create the order service using JSON REST service, let's have a look at the `Order` bean in `src/main/java/com/redhat/cloudnative/` as follows:
+JSON RESTサービスを使って注文サービスを作る前に、`src/main/java/com/redhat/cloudnative/` の `Order` Beanを以下のように見てみましょう :
 
 image::order_bean.png[order, 700]
 
-Nothing fancy. One important thing to note is that having a default constructor is required by the *JSON serialization layer*.
+派手なものは何もありません。注意すべき重要なことは、デフォルトのコンストラクタを持つことは、*JSONシリアライズレイヤー* によって要求されているということです。
 
-Now, open the `com.redhat.cloudnative.OrderService` class -- it will be the business layer of our application and _store/load_ the orders from the MongoDB database. Add the following java code at each marker.
+次に `com.redhat.cloudnative.OrderService` クラスを開きます。これがアプリケーションのビジネスレイヤーとなり、MongoDB データベースからの注文を _保存/ロード_ します。各マーカーに以下の java コードを追加します。
 
-`// TODO: Inject MongoClient here` marker:
+`// TODO: Inject MongoClient here` マーカー :
 
 [source,java,role="copypaste"]
 ----
     @Inject MongoClient mongoClient;
 ----
 
-Next, add this code below the `// TODO: Add a while loop to make an order lists using MongoCursor here` marker (in the `list()` method).
+次に、`// TODO: MongoCursor here` マーカーを使って順序リストを作るための while ループを追加します (`list()` メソッド内)。
 
 [source,java,role="copypaste"]
 ----
@@ -771,11 +758,11 @@ Next, add this code below the `// TODO: Add to create a Document based order her
         getCollection().insertOne(document);
 ----
 
-These two methods convert between a `Document` object suitable for use with MongoDB and the `Order` document which is our business value object.
+これらふたつのメソッドは、MongoDB で使うのに適した `Document` オブジェクトと、ビジネスバリューオブジェクトである `Order` ドキュメントを変換します。
 
-Now, edit the `com.redhat.cloudnative.OrderResource` class as follows in each marker:
+次に、`com.redhat.cloudnative.OrderResource` クラスを各マーカーで以下のように編集します :
 
-`// TODO: Add JAX-RS annotations here` marker:
+`// TODO: Add JAX-RS annotations here` マーカー:
 
 [source,java,role="copypaste"]
 ----
@@ -784,14 +771,14 @@ Now, edit the `com.redhat.cloudnative.OrderResource` class as follows in each ma
 @Consumes(MediaType.APPLICATION_JSON)
 ----
 
-`// TODO: Inject OrderService here` marker:
+`// TODO: Inject OrderService here` マーカー :
 
 [source,java,role="copypaste"]
 ----
     @Inject OrderService orderService;
 ----
 
-`// TODO: Add list(), add(), updateStatus() methods here` marker:
+`// TODO: Add list(), add(), updateStatus() methods here` マーカー:
 
 [source,java,role="copypaste"]
 ----
@@ -814,27 +801,24 @@ Now, edit the `com.redhat.cloudnative.OrderResource` class as follows in each ma
     }
 ----
 
-The implementation is pretty straightforward and you just need to define your endpoints using the *JAX-RS annotations* and use the _OrderService_ to list/add new orders.
+実装はとても簡単で、*JAX-RS アノテーション* を使用してエンドポイントを定義し、_OrderService_ を使用して新しい注文をリストアップ/追加するだけです。
 
-The main property to configure is the URL to access to *MongoDB*, almost all configuration can be included in the connection URI
-so we advise you to do so, you can find more information in the
-https://docs.mongodb.com/manual/reference/connection-string/[MongoDB documentation^]
+設定する主なプロパティは*MongoDB*にアクセスするためのURLで、ほとんどすべての設定は接続URIに含めることができます。というわけで, https://docs.mongodb.com/manual/reference/connection-string/[MongoDB documentation^] で詳細を確認することができます。
 
-Open `application.properties` in `src/main/resources/` and add the following configuration at the `# TODO: Add for MongoDB configuration` marker:
+`src/main/resources/` で `application.properties` を開き、`# TODO: Add for MongoDB configuration` マーカーに以下の設定を追加します :
 
 [source,sh,role="copypaste"]
 ----
 quarkus.mongodb.connection-string = mongodb://order-database:27017
 ----
 
-By using a Bson *Codec*, the MongoDB Client will take care of the transformation of your domain object to/from a MongoDB *Document* automatically.
+Bson *Codec* を使うことで、MongoDB クライアントが MongoDB *Document* からドメインオブジェクへの変換またはその逆を自動的に行います。
 
-First you need to create a Bson Codec that will tell Bson how to transform your entity to/from a MongoDB Document. Here we use a _CollectibleCodec_ as our object is retrievable from the database (it has a MongoDB identifier), if not we would have used a _Codec_ instead. More information in the https://mongodb.github.io/mongo-java-driver/3.10/bson/codecs[codec
-documentation^].
+まず、Bson Codec を作成して、エンティティを MongoDB Document との間でどのように変換するかを Bson に伝える必要があります。ここでは、オブジェクトがデータベースから取得できる(MongoDB の識別子を持っている)ので、_CollectibleCodec_ を使用しています。詳細は https://mongodb.github.io/mongo-java-driver/3.10/bson/codecs[codecdocumentation^] を参照してください。
 
-Edit the `com.redhat.cloudnative.codec.OrderCodec` class as follows:
+以下のように `com.redhat.cloudnative.codec.OrderCodec` クラスを編集します :
 
-`// TODO: Add Encode & Decode contexts here` marker:
+`// TODO: Add Encode & Decode contexts here` マーカー:
 
 [source,java,role="copypaste"]
 ----
@@ -891,11 +875,11 @@ Edit the `com.redhat.cloudnative.codec.OrderCodec` class as follows:
     }
 ----
 
-Then you need to create a `CodecProvider` to link this `Codec` to the Order class.
+次に、この `Codec` を Order クラスにリンクするための `CodecProvider` を作成する必要があります。
 
-Edit the `com.redhat.cloudnative.codec.OrderCodecProvider` class as follows:
+以下のように `com.redhat.cloudnative.codec.OrderCodecProvider` クラスを編集します :
 
-`// TODO: Add Codec get method here` marker:
+`// TODO: Add Codec get method here` マーカー :
 
 [source,java,role="copypaste"]
 ----
@@ -908,13 +892,13 @@ Edit the `com.redhat.cloudnative.codec.OrderCodecProvider` class as follows:
     }
 ----
 
-_Quarkus_ will register the _CodecProvider_ for you.
+_Quarkus_は、_CodecProvider_を登録してくれます。
 
-Finally, when getting the _MongoCollection_ from the database you can use directly the Order class instead of the Document one, the codec will automatically map the Document to/from your Order class.
+最後に、データベースから _MongoCollection_ を取得する際には、Document クラスの代わりに Order クラスを直接使用することができます。コーデックは自動的にドキュメントをオーダークラスにマッピングします。
 
-Edit the `com.redhat.cloudnative.CodecOrderService` class as follows:
+以下のように `com.redhat.cloudnative.CodecOrderService` クラスを編集します :
 
-`// TODO: Add MongoCollection method here` marker:
+`// TODO: Add MongoCollection method here` マーカー:
 
 [source,java,role="copypaste"]
 ----
@@ -923,32 +907,32 @@ Edit the `com.redhat.cloudnative.CodecOrderService` class as follows:
     }
 ----
 
-Run the following `oc` command to deploy a `MongoDB` to OpenShift via CodeReady Workspaces Terminal:
+以下の `oc` コマンドを実行して、CodeReady Workspaces Terminal 経由で `MongoDB` を OpenShift にデプロイする :
 
 [source,sh,role="copypaste"]
 ----
 oc new-app -n {{ USER_ID }}-cloudnativeapps --docker-image mongo:4.0 --name=order-database
 ----
 
-Now let's deploy the application itself. Run the following command which will build and deploy using the OpenShift extension:
+では、アプリケーション自体をデプロイしてみましょう。以下のコマンドを実行すると、OpenShift拡張機能を使用してビルドとデプロイが行われます :
 
 [source,sh,role="copypaste"]
 ----
 mvn clean package -DskipTests -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/order-service
 ----
 
-The output should end with `BUILD SUCCESS`.
+出力は `BUILD SUCCESS` で終わっているはずです。
 
-Finally, make sure it's actually done rolling out:
+最後に、実際にロールアウトが完了したことを確認してください :
 
 [source,sh,role="copypaste"]
 ----
 oc rollout status -w dc/order
 ----
 
-Wait for that command to report *replication controller _order-1_ successfully rolled out* before continuing.
+続ける前に、そのコマンドが *replication controller _order-1_ successfully rolled out* を報告するのを待ちます。
 
-And label the items with proper icons:
+そして、適切なアイコンでアイテムにラベルを付けます :
 
 [source,sh,role="copypaste"]
 ----
@@ -958,39 +942,39 @@ oc annotate dc/order app.openshift.io/connects-to=order-database --overwrite && 
 oc annotate dc/order app.openshift.io/vcs-ref=ocp-4.5 --overwrite
 ----
 
-Finally, make sure it’s actually done rolling out. Visit the {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] for the orders. Ensure you get the blue circles!
+最後に、実際にロールアウトが完了していることを確認します。オーダーは {{console_url }}/topology/ns/{{user_id }}}-cloudnativeapps[Topology View^] にアクセスしてください。青い丸が表示されていることを確認してください!
 
 image::order-topology.png[order, 700]
 
-And then access the http://order-{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN}}/api/orders[Orders^]. You will see empty result because you didn’t add any shopping items yet:
+そして、 http://order-{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN}}/api/orders[Orders^] にアクセスします。まだショッピングアイテムを追加していないので、空の結果が表示されます :
 
 [source,sh]
 ----
 []
 ----
 
-You can also see this with `curl` with this command in a Terminal:
+これはターミナルでこのコマンドを使って `curl` で確認することもできます:
 
 [source,sh,role="copypaste"]
 ----
 curl -s http://order-{{USER_ID}}-cloudnativeapps.{{ROUTE_SUBDOMAIN}}/api/orders | jq
 ----
 
-Which will also return an empty array `[]`.
+空の配列 `[]` を返します。
 
-=== 5. Deploying WEB-UI Service
+=== 5. WEB-UI サービス のデプロイ
 
-Our Web UI serves a frontend based on https://angularjs.org/[AngularJS^] and http://patternfly.org/[PatternFly^] running in a https://access.redhat.com/documentation/en/openshift-container-platform/3.3/paged/using-images/chapter-2-source-to-image-s2i[Node.js] container. https://www.redhat.com/en/products/runtimes[Red Hat Runtimes^] includes *Node.js* support along with other runtimes used for cloud native development.
+当社の Web UI は、 https://angularjs.org/[AngularJS^]とhttp://patternfly.org/[PatternFly^] をベースにしたフロントエンドを https://access.redhat.com/documentation/en/openshift-container-platform/3.3/paged/using-images/chapter-2-source-to-image-s2i[Node.js] コンテナで実行しています。 https://www.redhat.com/en/products/runtimes[Red Hat Runtimes^]には、クラウドネイティブ開発に使用される他のランタイムとともに *Node.js* のサポートが含まれています。
 
-Lets’s go through quickly how the frontend service works and is built on Node.js runtimes. Go to _Explorer: /projects_ in CodeReady Workspaces and expand the `coolstore-ui` directory.
+フロントエンドサービスがどのように動作し、Node.js ランタイム上に構築されているかを簡単に説明しましょう。CodeReady Workspaces の _/projects_ に移動し、`coolstore-ui` ディレクトリを展開します。
 
 image::codeready-workspace-coolstore-ui.png[coolstore-ui, 700]
 
-You will see javascript for specific cloud-native services such as the cart, catatlog, and order service as above.
+上記のように、カートや catatlog 、注文サービスなど、特定のクラウドネイティブサービスの JavaScript が表示されます。
 
-Now, we will deploy a presentation layer to OpenShift cluster using https://www.npmjs.com/package/nodeshift[Nodeshift] command line tool, a programmable API that you can use to deploy Node.js projects to OpenShift.
+では、Node.js プロジェクトを OpenShift にデプロイするために使えるプログラマブル API である https://www.npmjs.com/package/nodeshift[Nodeshift] コマンドラインツールを使って、プレゼンテーションレイヤーを OpenShift クラスタにデプロイしていきます。
 
-Install Nodeshift via the CodeReady Workspaces Terminal:
+CodeReady Workspaces ターミナルから Nodeshift をインストールします :
 
 [source,sh,role="copypaste"]
 ----
@@ -999,10 +983,10 @@ cd $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/coolstore-ui && npm instal
 
 [NOTE]
 ====
-You may see warnings from _npm_ about known vulnerabilities. The _npm_ ecosystem is huge and our app pulls in many dependencies which are constantly finding new issues. In a real production system you should pay attention to these, but for this workshop you can ignore them (your friendly workshop developers fix them as time permits when we're not supporting our customers!).
+既知の脆弱性に関する _npm_ からの警告が表示されるかもしれません。_npm_ のエコシステムは巨大で、私たちのアプリには多くの依存関係があり、常に新しい問題を発見しています。実際の運用システムではこれらに注意を払う必要がありますが、このワークショップでは無視することができます。
 ====
 
-Next, deploy the _coolstore-ui_ service using `Nodeshift` in a CodeReady Workspaces Terminal. It will take a minute to complete the deployment:
+次に、CodeReady Workspaces ターミナルで `Nodeshift` を使って _coolstore-ui_ サービスをデプロイします。デプロイが完了するまでに1分ほどかかります :
 
 [source,sh,role="copypaste"]
 ----
@@ -1013,20 +997,20 @@ oc annotate dc/coolstore-ui app.openshift.io/vcs-uri=https://github.com/RedHat-M
 oc annotate dc/coolstore-ui app.openshift.io/vcs-ref=ocp-4.5 --overwrite
 ----
 
-Back on the {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^], make sure it's done deploying (dark blue circle):
+{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}}-cloudnativeapps[Topology View^] に戻って、デプロイが完了していることを確認します(紺色の丸) :
 
 image::coolstore-ui_topology.png[coolstore-ui, 700]
 
-And then access the http://coolstore-ui-{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN}}[Red Hat Cool Store^] and ensure you get the expected products and inventories:
+そして、http://coolstore-ui-{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN}}}[Red Hat Cool Store^] にアクセスして、期待されている製品や在庫を確保します。
 
 image::web-ui-landing.png[coolstore-ui, 700]
 
-This confirms that the frontend is properly hooked up to the backend, which is properly hooked up to our Data Grid deployment.
+これにより、フロントエンドがバックエンドに適切に接続されていることが確認され、データグリッドのデプロイメントに適切に接続されていることが確認されます。
 
-=== Summary
+=== 概要
 
-In this scenario we developed and deployed 5 microservices, each with a REST API and each of which communicate with the other microservices. We also used a variety of application runtimes such as Quarkus, Spring Boot, and Node.js to compile, package, and containerize applications -- this is an important capability of advanced cloud-native architectures.
+このシナリオでは、5つのマイクロサービスを開発してデプロイし、それぞれが REST API を持ち、他のマイクロサービスと通信するようにしました。また、Quarkus、Spring Boot、Node.js などの様々なアプリケーションランタイムを使用して、アプリケーションのコンパイル、パッケージ化、コンテナ化を行いましたが、これは高度な Cloud Native アーキテクチャの重要な機能です。
 
-To deploy cloud-native applications with multiple datasources on an OpenShift cluster, Quarkus provides an easy way to connect multiple datasources and obtain a reference to those datasources such as PostgreSQL and MongoDB in code.
+OpenShift クラスタ上に複数のデータソースを持つ Cloud Native アプリケーションを展開するために、Quarkus は複数のデータソースを接続し、PostgreSQL や MongoDB などのデータソースへの参照をコードで取得する簡単な方法を提供しています。
 
-In the end, we optimized the _transaction performance_ of the shopping cart service by integrating it with *Red Hat Data Grid* to increase end users’ (customers) satification. This may not be obvious with only one user (you), but at scale these components can ensure relability and business performance. *Congratulations!*
+最終的には、ショッピングカートサービスを *Red Hat Data Grid* と統合することで、エンドユーザー(顧客)の満足度を高めることで、ショッピングカートサービスの _トランザクションパフォーマンス_ を最適化しました。たった一人のユーザー(あなた)だけではわからないかもしれませんが、規模が大きくなれば、これらのコンポーネントによってリライする能力とビジネスパフォーマンスを確保することができます。*おめでとうございます！＊

@@ -1,61 +1,58 @@
-= Lab3 - Evolving services with Serverless
+= Lab3 - サーバーレスでサービスを進化
 :experimental:
 
-In our cloud-native application architecture, We now have multiple microservices in a *reactive* system. However, it’s not necessary that applications and services remain up and running 24 hours day. They only need to be running *on-demand*, when something needs to use the service. This is one of the reasons why *serverless* architectures have gained popularity.
+Cloud Native アプリケーション・アーキテクチャでは、現在、複数のマイクロサービスを *reactive* システムで運用しています。しかし、アプリケーションやサービスが24時間稼働している必要はありません。何かがサービスを利用する必要があるときに、*オンデマンド* で動作していればいいのです。これが *serverless* アーキテクチャが人気を集めている理由の一つです。
 
-* *Serverless* is often used interchangeably with the term _FaaS_ (Functions-as-a-Service). But serverless doesn’t mean that there is no server. In fact, there _are_ servers - a public cloud provider provides the servers that deploy, run, and manage your application.
-* *Serverless computing* is an emerging category that represents a shift in the way developers build and deliver software systems. Abstracting application infrastructure away from the code can greatly simplify the development process while introducing new cost and efficiency benefits. Serverless computing and FaaS will play an important role in helping to define the next era of enterprise
-IT, along with cloud-native services and the https://enterprisersproject.com/hybrid-cloud[hybrid cloud^].
-* *Serverless platforms* provide APIs that allow users to run code snippets (functions, also called _actions_) and return the results of each function. Serverless platforms also provide endpoints to allow the developer to retrieve function results. These endpoints can be used as inputs for other functions, thereby providing a sequence (or chain) of related functions.
+* *Serverless* はしばしば _FaaS_ (Functions-as-a-Service)という用語と互換的に使われます。しかし、サーバーレスはサーバーがないという意味ではありません。実際には、サーバーは存在します - パブリッククラウドプロバイダーは、アプリケーションを展開、実行、管理するサーバーを提供します。
+* *Serverless computing* は開発者がソフトウェアシステムを構築して提供する方法に変化をもたらす新興のカテゴリーです。アプリケーション・インフラストラクチャをコードから切り離すことで、開発プロセスを大幅に簡素化しながら、新たなコストと効率性のメリットをもたらすことができます。サーバーレスコンピューティングと FaaS は、Cloud Native サービスや https://enterprisersproject.com/hybrid-cloud[ハイブリッドクラウド^] とともに、エンタープライズ IT の次の時代を定義する上で重要な役割を果たすことになるでしょう。
+* *Serverless platforms* は API を提供しており、ユーザーがコードスニペット (_actions_ とも呼ばれる関数) を実行し、各関数の結果を返すことができます。サーバレスプラットフォームは、開発者が関数の結果を取得するためのエンドポイントも提供しています。これらのエンドポイントは、他の関数の入力として使用することができ、それによって関連する関数のシーケンス(またはチェーン)を提供することができます。
 
-The severless application enables DevOps teams to enjoy benefits like:
+サーバーレスアプリケーションは、DevOps チームが以下のようなメリットを享受できるようにします :
 
-* Optimizing computing resources(i.e CPU, Memory)
-* Autoscaling
-* Simplifying CI/CD pipeline
+* コンピューティングリソースの最適化(CPU、メモリなど)
+* オートスケーリング
+* CI/CD パイプラインの簡素化
 
-=== Goals of this lab
+=== このラボのゴール
 
-The goal is to develop serverless applications on *Red Hat Runtimes* and deploy them on *OpenShift 4* using https://www.openshift.com/learn/topics/serverless[OpenShift Serverless^] with a cloud-native, continuous integration and delivery (CI/CD) Pipelines. In this lab, we’ll deploy the Payment Service as a Quarkus-based serverless application using Knative Serving, Istio, and Tekton
-Pipelines. After this lab, you should end up with something like:
+目標は、*Red Hat Runtimes* 上でサーバーレスアプリケーションを開発し、https://www.openshift.com/learn/topics/serverless[OpenShift Serverless^] を使用して *OpenShift 4* 上にデプロイし、Cloud Native で継続的なインテグレーションとデリバリ(CI/CD)パイプラインを使用することです。このラボでは、Knative Serving、Istio、Tekelton Pipelines を使用して、Quarkus ベースのサーバーレスアプリケーションとして Payment Service をデプロイします。このラボの後には、次のようなものを完成させる必要があります。
 
 image::lab3-goal.png[goal, 700]
 
-The Knative Kafka Event _source_ enables _Knative Eventing_ integration with Apache Kafka. When a message is produced in Apache Kafka, the Apache Kafka Event Source will consume the produced message and post that message to the corresponding event _sink_.
+Knative Kafka Event _source_ は、Apache Kafka との _Knative Eventing_ の統合を可能にします。Apache Kafka でメッセージが生成されると、Apache Kafka イベントソースは生成されたメッセージを消費し、対応する Event _sink_ にそのメッセージを投稿します。
 
-==== What is Red Hat OpenShift Serverless?
+==== Red Hat OpenShift Serverless とは?
 
-OpenShift Serverless helps developers to deploy and run applications that will scale up or scale to zero on-demand. Applications are packaged as OCI compliant Linux containers that can be run anywhere.
+OpenShift Serverless は、開発者がオンデマンドでスケールアップまたはゼロにスケールアップするアプリケーションのデプロイと実行を支援します。アプリケーションは OCI に準拠した Linux コンテナとしてパッケージ化されており、どこでも実行可能です。
 
 image::knative-serving-diagram.png[knative, 800]
 
-Applications can be triggered by a variety of event sources, such as events from your own applications, cloud services from multiple providers, Software as a Service (SaaS) systems and Red Hat Services (https://access.redhat.com/products/red-hat-amq[AMQ Streams^]).
+アプリケーションは、自社のアプリケーションからのイベント、複数のプロバイダーからのクラウドサービス、Software as a Service(SaaS)システム、Red Hat Services( https://access.redhat.com/products/red-hat-amq[AMQ Streams^] )など、さまざまなイベントソースからトリガーすることができます。
 
 image::knative-eventing-diagram.png[knative, 800]
 
-OpenShift Serverless applications can be integrated with other OpenShift services, such as OpenShift https://www.openshift.com/learn/topics/pipelines[Pipelines^], https://www.openshift.com/learn/topics/service-mesh[Service Mesh^], Monitoring and https://github.com/operator-framework/operator-metering[Metering^], delivering a complete serverless application development and deployment experience.
+OpenShift Serverless アプリケーションは、OpenShift https://www.openshift.com/learn/topics/pipelines[Pipelines^]、https://www.openshift.com/learn/topics/service-mesh[Service Mesh^] 、Monitoring、 https://github.com/operator-framework/operator-metering[Metering^] などの他の OpenShift サービスと統合することができ、完全なサーバーレスアプリケーションの開発とデプロイメントの経験を提供します。
 
-=== 1. Building a Native Executable
+=== 1. ネイティブ実行可能なファイルのビルド
 
-Let’s now produce a native executable for an example Quarkus application. It improves the startup time of the application, and produces a minimal disk and memory footprint, which is important in serverless applications. The executable would have everything to run the application including the `JVM`(shrunk to be just enough to run the application), and the application. This is accomplished using https://graalvm.org/[GraalVM^].
+それでは、例の Quarkus アプリケーション用のネイティブ実行ファイルを作成してみましょう。これにより、アプリケーションの起動時間が改善され、最小限のディスクとメモリのフットプリントが生成されます。実行ファイルには、`JVM` (アプリケーションを実行するのに十分な大きさに縮小されています) とアプリケーションを含む、アプリケーションを実行するためのすべてが含まれています。これは https://graalvm.org/[GraalVM^] を使用して達成されます。
 
-`GraalVM` is a universal virtual machine for compiling and running applications written in JavaScript, Python, Ruby, R, JVM-based languages like Java, Scala, Groovy, Kotlin, Clojure, and LLVM-based languages such as C and C++. It includes ahead-of-time compilation, aggressive dead code elimination, and optimal packaging as native binaries that moves a lot of startup logic to build-time, thereby reducing startup time and memory resource requirements significantly.
+`GraalVM`は、JavaScript、Python、Ruby、R、Java、Scala、Groovy、Kotlin、Clojure などの JVM ベースの言語、C や C++ などの LLVM ベースの言語で書かれたアプリケーションをコンパイルして実行するための普遍的な仮想マシンです。先行コンパイル、積極的なデッドコードの排除、ネイティブバイナリとしての最適なパッケージングが含まれており、多くの起動ロジックをビルド時に移動させることで、起動時間とメモリリソース要件を大幅に削減します。
 
 image::native-image-process.png[serverless, 700]
 
-`GraalVM` is already installed for you. Inspect the value of the `GRAALVM_HOME` variable in the CodeReady Workspaces Terminal
-with:
+`GraalVM` はすでにインストールされています。CodeReady Workspaces ターミナルの `GRAALVM_HOME` 変数の値を確認してください :
 
 [source,sh,role="copypaste"]
 ----
 echo $GRAALVM_HOME
 ----
 
-In this step, we will learn how to compile the application to a native executable and run the native image on local machine.
+このステップでは、アプリケーションをネイティブ実行ファイルにコンパイルし、ローカルマシン上でネイティブイメージを実行する方法を学びます。
 
-Compiling a native image takes longer than a regular JAR file (bytecode) compilation. However, this compilation time is only incurred once, as opposed to every time the application starts, which is the case with other approaches for building and executing JARs.
+ネイティブイメージのコンパイルは、通常の JAR ファイル (バイトコード) のコンパイルよりも時間がかかります。しかし、このコンパイル時間は、アプリケーションが起動するたびに発生するのではなく、一度だけ発生します。
 
-Let’s find out why Quarkus calls itself _SuperSonic Subatomic Subatomic Java_. Let’s build a sample app. In CodeReady Terminal, run this command:
+Quarkusが _SuperSonic Subatomic Subatomic Java_ と名乗る理由を調べてみましょう。サンプルアプリを作ってみましょう。CodeReady Workspace ターミナルで、以下のコマンドを実行します:
 
 [source,sh,role="copypaste"]
 ----
@@ -69,25 +66,25 @@ mvn io.quarkus:quarkus-maven-plugin:1.3.2.Final-redhat-00001:create \
     -Dpath="/hello"
 ----
 
-This will create a simple Quarkus app in the */tmp/hello* directory.
+これは、 */tmp/hello* ディレクトリにシンプルな Quarkus アプリを作成します。
 
-Next, create a `native executable` with this command:
+次に、このコマンドで `ネイティブ実行ファイル` を作成します :
 
 [source,sh,role="copypaste"]
 ----
 mvn -f /tmp/hello/getting-started/pom.xml clean package -Pnative -DskipTests
 ----
 
-This may take a minute or two to run. One of the benefits of Quarkus is amazingly fast startup time, at the expense of a longer build time to optimize and remove dead code, process annotations, etc. This is only incurred once, at build time rather than _every_ startup!
+これは実行に1～2分かかるかもしれません。Quarkus の利点の 1 つは、デッドコードやプロセスアノテーションなどを最適化して削除するためのビルド時間が長くなることが犠牲となっても、起動時間が驚くほど速いことです。これは、毎回の起動ではなく、ビルド時に一度だけ発生します。
 
 [NOTE]
 ====
-Since we are on Linux in this environment, and the OS that will eventually run our application is also Linux, we can use our local OS to build the native Quarkus app. If you need to build native Linux binaries when on other OS’s like Windows or Mac OS X, you’ll need to have Docker installed and then use `mvn clean package -Pnative -Dnative-image.docker-build=true -DskipTests=true`.
+この環境ではLinuxを使用しており、最終的にアプリケーションを実行する OS も Linux なので、ローカル OS を使用してネイティブの Quarkus アプリをビルドすることができます。Windows や Mac OS X などの他の OS 上でネイティブの Linux バイナリをビルドする必要がある場合は、Docker をインストールして、`mvn clean package -Pnative -Dnative-image.docker-build=true -DskipTests=true` を使用する必要があります。
 ====
 
 image::payment-native-image-build.png[serverless, 700]
 
-Since our environment here is Linux, you can just run it. In the CodeReady Workspaces Terminal, run:
+ここでの環境は Linux なので、実行するだけで OK です。CodeReady Workspaces Terminal で実行します :
 
 [source,sh,role="copypaste"]
 ----
@@ -96,10 +93,10 @@ Since our environment here is Linux, you can just run it. In the CodeReady Works
 
 [WARNING]
 ====
-If you still have a previous application running in a separate CodeReady Terminal, you may get an error like `java.net.BindException: Address already in use`. Go to that other tab and press kbd:[CTRL+C] to stop the previous application, then try to run the native application again!
+別の CodeReady Workspace Terminal で以前のアプリケーションをまだ実行している場合、`java.net.BindException. Address already in use` のようなエラーが出るかもしれません。別のタブに移動してkbd:[CTRL+C] を押して前のアプリケーションを停止してから、ネイティブアプリケーションを再度実行してみてください。
 ====
 
-Notice the amazingly fast startup time:
+驚くほど速い起動時間に注目してください :
 
 [source,shell]
 ----
@@ -112,16 +109,16 @@ __  ____  __  _____   ___  __ ____  ______
 2020-04-06 13:48:33,523 INFO  [io.quarkus] (main) Installed features: [cdi, resteasy]
 ----
 
-That’s *18 milliseconds* to start up. The start-up time might be different in your environment.
+起動に *18ミリ秒* かかります。お使いの環境によっては起動時間が異なる場合があります。
 
-And extremely low memory usage as reported by the Linux `ps` utility. While the app is running, run the following command in another Terminal:
+また、Linux の `ps` ユーティリティで報告されているように、メモリ使用量が非常に少なくなっています。アプリを実行している間、別のターミナルで以下のコマンドを実行します :
 
 [source,sh,role="copypaste"]
 ----
 ps -o pid,rss,command -p $(pgrep -f runner)
 ----
 
-You should see something like:
+以下のような出力を確認できます :
 
 [source,shell]
 ----
@@ -129,22 +126,21 @@ You should see something like:
    2438 27268 /tmp/hello/getting-started/target/getting-started-1.0-SNAPSHOT-runner
 ----
 
-This shows that our process is taking around `27 MB` of memory (https://en.wikipedia.org/wiki/Resident_set_size[Resident Set
-Size^], or RSS). Pretty compact!
+これは、私たちのプロセスが `27 MB` 程度のメモリを消費していることを示しています (https://en.wikipedia.org/wiki/Resident_set_size[Resident Set Size^] 、または RSS)。かなりコンパクトです。
 
 [NOTE]
 ====
-The RSS and memory usage of any app, including Quarkus, will vary depending your specific environment, and will rise as the application experiences load.
+Quarkus を含むあらゆるアプリの RSS やメモリ使用量は、特定の環境によって異なり、アプリの負荷を経験すると上昇します。
 ====
 
-Make sure the app works. In a new CodeReady Workspaces Terminal run:
+アプリが動作することを確認してください。新しい CodeReady Workspaces Terminal で実行します :
 
 [source,sh,role="copypaste"]
 ----
 curl -i http://localhost:8080/hello
 ----
 
-You should see the return:
+以下の返却を確認することができます :
 
 [source,console]
 ----
@@ -155,51 +151,50 @@ Content-Type: text/plain;charset=UTF-8
 hello
 ----
 
-*Congratulations!* You’ve now built a Java application as a native executable JAR and a Linux native binary. We’ll explore the benefits of native binaries later in when we start deploying to Kubernetes.
+*おめでとうございます。* これで、Javaアプリケーションをネイティブ実行可能な JAR と Linux ネイティブバイナリとして構築することができました。ネイティブバイナリの利点については、後ほど Kubernetes へのデプロイを開始したときに探ってみましょう。
 
-Be sure to terminate the running Quarkus development via kbd:[CTRL+C]).
+実行中の Quarkus を kbd:[CTRL+C] で必ず終了させてください。
 
-=== 2. Delete old payment service
+=== 2. 古い支払いサービスの削除
 
-_OpenShift Serverless_ builds on Knative Serving to support deploying and serving of serverless applications and functions. _Serverless_ is easy to get started with and scales to support advanced scenarios.
+_OpenShift Serverless_ は Knative Serving をベースに構築されており、サーバーレスアプリケーションと機能のデプロイと提供をサポートします。サーバレスアプリケーションと機能のデプロイと提供をサポートするために、_Serverless_は簡単に始められ、高度なシナリオをサポートするために拡張できます。
 
-The OpenShift Serverless provides middleware primitives that enable:
+OpenShift Serverless は、それを可能にするミドルウェアプリミティブを提供します :
 
-* Rapid deployment of serverless containers
-* Automatic scaling up and down to zero
-* Routing and network programming for Istio components
-* Point-in-time snapshots of deployed code and configurations
+* サーバーレスコンテナの高速デプロイメント
+* 自動スケールアップとゼロへのスケールダウン
+* Istio コンポーネントのためのルーティングとネットワークプログラミング
+* 配置されたコードとコンフィギュレーションのポイントインタイムスナップショット
 
-In the lab, _OpenShift Serverless Operator_ is already installed on your OpenShift 4 cluster but if you want to install it on your
-own OpenShift cluster, follow https://docs.openshift.com/container-platform/latest/serverless/installing-openshift-serverless.html[Installing OpenShift Serverless^].
+ラボでは、_OpenShift Serverless Operator_ はすでに OpenShift 4クラスタにインストールされていますが、あなた自身の OpenShift クラスタにインストールしたい場合は、 https://docs.openshift.com/container-platform/latest/serverless/installing-openshift-serverless.html[Installing OpenShift Serverless^] に従ってください。
 
-First, we need to delete existing `BuildConfig` as it is based an excutable Jar that we deployed it in the previous lab.
+まず、既存の `BuildConfig` は前回のラボでデプロイした拡張可能な Jar をベースにしているので削除する必要があります。
 
 [source,sh,role="copypaste"]
 ----
 oc delete bc/payment imagestream.image.openshift.io/payment
 ----
 
-We also will delete our existing payment _deployment_ and _route_ since Knative will handle deploying the payment service and routing traffic to its managed pod when needed. Delete the existing payment deployment and its associated route and service with:
+また、必要に応じて支払いサービスのデプロイと管理ポッドへのトラフィックのルーティングを Knative が処理するため、既存の支払いの _Deployment_ と _Route_ も削除します :
 
 [source,sh,role="copypaste"]
 ----
 oc delete dc/payment route/payment svc/payment
 ----
 
-=== 3. Enable Knative Eventing integration with Apache Kafka Event
+=== 3. Apache Kafka を使用した Knative Eventing Integration の有効化
 
-_Knative Eventing_ is a system that is designed to address a common need for cloud native development and provides composable primitives to enable `late-binding` event sources and event consumers with below goals:
+_Knative Eventing_ は、Cloud Native 開発における共通のニーズに応えるために設計されたシステムであり、以下の目標を達成するために、イベントソースとイベントコンシューマーを `late-binding` することを可能にするための構成可能なプリミティブを提供します :
 
-* Services are loosely coupled during development and deployed independently.
-* Producer can generate events before a consumer is listening, and a consumer can express an interest in an event or class of events that is not yet being produced.
+* サービスは開発中に緩く結合され、独立してデプロイされます。
+* プロデューサーは、コンシューマーがリッスンする前にイベントを生成することができ、コンシューマーはまだ生成されていないイベントやイベントのクラスに興味を示すことができます。
 * Services can be connected to create new applications without modifying producer or consumer, and with the ability to select a specific subset of events from a particular producer.
 
-The _Apache Kafka Event source_ enables Knative Eventing integration with Apache Kafka. When a message is produced to Apache Kafka, the Event Source will consume the produced message and post that message to the corresponding event sink.
+プロデューサやコンシューマを変更することなく、特定のプロデューサからイベントの特定のサブセットを選択する機能を備えたサービスを接続して、新しいアプリケーションを作成することができます。
 
-Remove direct Knative integration code. Currently our Payment service directly binds to Kafka to listen for events. Now that we have Knative eventing integration, we no longer need this code. Open the `PaymentResource.java` file (in `payment-service/src/main/java/com/redhat/cloudnative` directory).
+Knative の直接の統合コードを削除します。現在、私たちの支払いサービスは、Kafka に直接バインドしてイベントをリッスンしています。Knative のイベント統合ができたので、このコードは不要になりました。ペイメントサービス `/src/main/java/com/redhat/cloudnative` ディレクトリにある `PaymentResource.java` ファイルを開きます。
 
-Comment out the `onMessage()` method via kbd:[CTRL+/] (or kbd:[Command+/] on Mac OS):
+kbd:[CTRL+/] (Mac OS の場合は kbd:[Command+/] ) で `onMessage()` メソッドをコメントアウトしてください :
 
 [source,java]
 ----
@@ -213,7 +208,7 @@ Comment out the `onMessage()` method via kbd:[CTRL+/] (or kbd:[Command+/] on Mac
 //    }
 ----
 
-And delete the configuration for the incoming stream. In `application.properties`, comment out the following lines for the _Incoming_ stream and _OpenShift extension_ via kbd:[CTRL+/] (or kbd:[Command+/] on Mac OS):
+また、着信ストリームの設定を削除します。application.propertiesで、_Incoming_ ストリームと _OpenShift extension_ について、以下の行を kbd:[CTRL+/](Mac OSの場合は kbd:[Command+/]) でコメントアウトしてください。
 
 [source,none]
 ----
@@ -241,18 +236,17 @@ And delete the configuration for the incoming stream. In `application.properties
 
 [WARNING]
 ====
-Make sure you only comment out or delete the lines starting with `mp.messaging.incoming`, `OpenShift extension` and leave the rest!
+`mp.messaging.incoming`, `OpenShift extension` で始まる行だけをコメントアウトするか削除して、残りを残してください!
 ====
 
-Rebuild and re-deploy new payment service via running the following maven plugin in CodeReady Workspaces Terminal:
+CodeReady Workspaces Terminal で 以下の maven プラグインを実行して、新しい決済サービスを再構築し、再デプロイします :
 
 [source,sh,role="copypaste"]
 ----
 mvn clean package -Pnative -DskipTests -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service
 ----
 
-The _-Pnative_ argument selects the native maven profile which invokes the _Graal compiler_. We’ve deleted our old build configuration that took a JAR file. We need a new build configuration that can take our new native
-compiled Quarkus app. Create a new build config with this command:
+_-Pnative_ 引数は、_Graal コンパイラ_ を呼び出すネイティブの maven プロファイルを選択します。JAR ファイルを取得する古いビルド構成を削除しました。新しいネイティブにコンパイルされた Quarkus アプリを使用できる新しいビルド設定が必要です。このコマンドで新しいビルドコンフィグを作成します :
 
 [source,sh,role="copypaste"]
 ----
@@ -266,13 +260,13 @@ Start and watch the build, which will take about 3-4 minutes to complete:
 oc start-build payment --from-file=$CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service/target/payment-1.0-SNAPSHOT-runner --follow
 ----
 
-This step will combine the native binary with a base OS image, create a new container image, and push it to an internal image registry.
+このステップでは、ネイティブバイナリとベース OS イメージを組み合わせ、新しいコンテナイメージを作成し、内部イメージレジストリにプッシュします。
 
-Go to the {{ CONSOLE_URL }}/add/ns/{{ USER_ID }}-cloudnativeapps[+Add] to create a _Knative Service_ and click on *Container Image*:
+{{CONSOLE_URL }}/add/ns/{{USER_ID }}}-cloudnativeapps[+Add] に移動して、_Knative Service_ を作成し、*Container Image* をクリックします。:
 
 image::add-icon.png[serverless, 700]
 
-Fill out the following variables to deploy _Payment Image_ that you just built then click on *Create*:
+次の変数を入力して、先ほど作成した _Payment Image_ をデプロイし、*Create* をクリックします :
 
 * Image stream tag from internal registry: *Checked*
 * Projects: *{{ USER_ID }}-cloudnativeapps*
@@ -287,14 +281,14 @@ Fill out the following variables to deploy _Payment Image_ that you just built t
 
 image::deploy-payment-image.png[serverless, 900]
 
-After successful creation of the service we should see a *Knative Service*(_KSVC_) and *Revision*(_REV_) in the {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View]:
+サービスの作成に成功すると、{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}}-cloudnativeapps[Topology View] に *Knative Service* (_KSVC_)と *Revision* (_REV_)が表示されるはずです :
 
 [NOTE]
 ====
-It will take a few moments (up to 2 minutes) to fully render while the networking is setup properly. Try reloading the browser page if all you see is an empty box!
+ネットワークが適切に設定されている間は、完全にレンダリングされるまでに数分(最大2分)かかります。空のボックスが表示される場合は、ブラウザのページをリロードしてみてください。
 ====
 
-Let's edit labels to add _Quarkus_ icon. Previously you did this with a series of `oc label` commands, but let's do it once manually just for fun. Click on payment *REV* then select *Edit Labels* in _Actions_ drop box:
+ラベルを編集して、_Quarkus_ アイコンを追加してみましょう。これまでは `oc label` コマンドで行っていましたが、今回は手動で行ってみましょう。支払い *REV* をクリックして、_Actions_ ドロップボックスで*Edit Labels* を選択します :
 
 image::kservice-up.png[serverless, 700]
 
@@ -307,32 +301,32 @@ app.openshift.io/runtime=quarkus
 
 image::quarkus-label.png[serverless, 500]
 
-Now you see Quarkus icon in _Payment Service_ on topology:
+これでトポロジー上の _Payment Service_ に Quarkus のアイコンが表示されるようになりました :
 
 image::kservice-up-quarkus.png[serverless, 700]
 
-In the lab environment, _OpenShift Serverless_ will automatically scale services down to zero instances when the service(i.e. payment) has no request after *30 seconds* which means the payment service pod will unavailable in 30 seconds. Visit again the {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^]. Ensure there's no *blue circle* in the payment service!
+ラボ環境では、_OpenShift Serverless_ は、サービス(つまり支払い)は *30秒間* リクエストがない場合に自動的にサービスをゼロにスケールダウンしますこれは、支払いサービスの Pod が 30 秒後に利用できなくなることを意味します。もう一度 {{CONSOLE_URL }}/topology/ns/{{ USER_ID }}}-cloudnativeapps[Topology View^] にアクセスしてください。決済サービスに *青丸* がないことを確認してください!
 
 [NOTE]
 ====
-You need to wait ~30 seconds before it scales to 0!
+0 にスケールする前に 〜30秒 待つ必要があります!
 ====
 
 image::kservice-down.png[serverless, 700]
 
-If you send traffic to this endpoint it will trigger the autoscaler to scale the app up. Click on http://payment.{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN }}[Open URL^] to _trigger_ the payment service. This will send some dummy data to the `payment` service, but more importantly it triggered knative to spin up the pod again automatically, and will shut it down 30 seconds later.
+このエンドポイントにトラフィックを送信すると、アプリをスケールアップするためのオートスケーラーがトリガーされます。 http://payment.{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN }}[Open URL^] をクリックして、支払いサービスを _trigger_ します。これにより、いくつかのダミーデータが `payment` サービスに送信されますが、より重要なのは、knative が自動的にポッドを再びスピンアップさせ、30秒後にシャットダウンするようにトリガーしたことです。
 
 image::payment-serving-magic.png[serverless, 700]
 
-*Congratulations!* You’ve now deployed the payment service as a Quarkus native image, served with _OpenShift Serverless_, quicker than traditional Java applications. This is not the end of Serverless capabilites so we will now see how the payment service will scale up _magically_ in the following exercises.
+*おめでとうございます！* これで、支払いサービスが Quarkus ネイティブイメージとしてデプロイされ、_OpenShift Serverless_ で提供され、従来のJavaアプリケーションよりも高速になりました。これでServerlessの能力は終わりではありませんので、次の演習で支払いサービスがどのように _魔法のように_ スケールアップするかを見てみましょう。
 
-Let's move on to create *KafkaSource* to enable *Knative Eventing*. In this lab, _Knative Eventing_ is already installed via the _Knative Eventing Operator_ in OpenShift 4 cluster.
+それでは、*KafkaSource* を作成して *Knative Eventing* を有効にしてみましょう。このラボでは、_Knative Eventing_ はすでに OpenShift 4 クラスタの _Knative Eventing Operator_ を介してインストールされています。
 
-Back on the {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^], click on `+` icon on the right top corner.
+{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}}-cloudnativeapps[Topology View^] に戻って、右上の `+` アイコンをクリックします。
 
 image::plus-icon.png[serverless, 500]
 
-Copy the following `KafkaSource` in `YAML` editor then click on *Create*:
+以下の `KafkaSource` を `YAML` エディタでコピーし、*Create* をクリックする :
 
 [source,yaml,role="copypaste"]
 ----
@@ -352,44 +346,44 @@ spec:
       name: payment
 ----
 
-You can see a new connection between Kafka and our *payments* service:
+Kafka と *payments* サービスの間の新しい接続を見ることができます :
 
 [NOTE]
 ====
-Serverless is an advanced and still evolving feature, and in this case you may not see the `KafkaSource` represented on the Topology view depending on the version of OpenShift and OpenShift serverless in use. If it does not appear, do not worry! The underlying technology will work as expected, so simply continue on.
+Serverless は進化し続けている機能であり、この場合、使用している OpenShift や OpenShift serverless のバージョンによっては、トポロジービューに `KafkaSource` が表示されない場合があります。表示されない場合は心配しないでください。基礎となる技術は期待通りに動作しますので、先に進むだけです。
 ====
 
 image::kafka-event-source-link.png[serverless, 700]
 
-*Great job!* Let’s make sure if the payment service works properly with _Serverless_ features via Coolstore Web UI.
+Coolstore Web UI経由で _Serverless_ の機能で決済サービスが正常に動作するかどうかを確認してみましょう。
 
 === 4. End to End Functional Testing
 
-Before getting started, we need to make sure if _payment service_ is scaled down to _zero_ again in {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^]:
+始める前に、{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] で、_payment service_ が再び_ゼロ_にスケールダウンされているかどうかを確認する必要があります :
 
 image::payment-down-again.png[serverless, 700]
 
-Let’s go shopping! Access the http://coolstore-ui-{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN}}[Red Hat Cool Store^]!
+ショッピングをしましょう! http://coolstore-ui-{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN}}[Red Hat Cool Store^] にアクセスしてください!
 
-Add some cool items to your shopping cart in the following shopping scenarios:
+以下のショッピングシナリオでは、ショッピングカートにいくつかのクールなアイテムを追加します。:
 
 [arabic]
-. Add a _Forge Laptop Sticker_ to your cart by click on *Add to Cart*. You will see the `Success! Added!` message under the top menu.
+. *カートに追加* をクリックして、_Forge Laptop Sticker_ をカートに追加してください。トップメニューの下に `Success! トップメニューの下に「追加されました！」というメッセージが表示されます。
 
 image::add-to-cart-serverless.png[serverless, 1000]
 
 [arabic, start=2]
-. Go to the *Your Shopping Cart* tab and click on the *Checkout* button . Input the credit card information. The Card Info should be 16 digits and begin with the digit `4`. For example `4123987754646678`.
+. *Your Shopping Cart* タブに移動し、*Checkout* ボタンをクリックします。クレジットカード情報を入力します。カード情報は16桁で、数字の `4` で始まる必要があります。例えば、`4123987754646678`のように入力します。 
 
 image::checkout-serverless.png[serverless, 1000]
 
 [arabic, start=3]
-. Input your Credit Card information to pay for the items:
+. クレジットカード情報を入力して、商品代金をお支払いください :
 
 image::input-cc-info-serverless.png[serverless, 1000]
 
 [arabic, start=4]
-. Let’s find out how _Kafka Event_ enables _Knative Eventing_. Go back to {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] then confirm if *payment service* is up automatically. It’s `MAGIC!!`
+. _Kafka Event_ がどのようにして _Knative Eventing_ を有効にしているのか確認してみましょう。{{CONSOLE_URL }}/topology/ns/{{ USER_ID }}}-cloudnativeapps[Topology View^] に戻って、*支払いサービス*が自動的に起動しているかどうか確認してください。
 
 image::payment-serving-magic.png[serverless, 500]
 
@@ -400,56 +394,55 @@ image::payment-processing-serverless.png[serverless, 1000]
 
 
 [arabic, start=5]
-. After a few moments, reload the *All Orders* page to confirm that the Payment Status changed to `COMPLETED` or `FAILED`.
+. *All Orders* タブで、ショッピング商品の_お支払い状況を確認してください。`Processing` になっているはずです。
 
 [NOTE]
 ====
-If the status is still *Processing*, the order service is processing incoming Kafka messages and store them in MongoDB. Please reload the page a few times more.
+ステータスが *Processing* のままの場合は、注文サービスが受信した Kafka メッセージを処理して MongoDB に保存しています。あと数回ページをリロードしてください。
 ====
 
 image::payment-completedorfailed-serverless.png[serverless, 1000]
 
-This is the same result as before, but using Knative eventing to make a more powerful event-driven system that can scale with demand.
+これはこれまでと同じ結果ですが、Knative のイベントを使って、需要に合わせてスケールできる、より強力なイベント駆動型のシステムを作ることができます。
 
-=== 5. Creating Cloud-Native CI/CD Pipelines using Tekton
+=== 5. Tekton を使用した Cloud-Native CI/CD パイプラインの作成
 
-There’re lots of open source CI/CD tools to build, test, deploy, and manage cloud-native applications/microservices: from on-premise to private, public, and hybrid cloud. Each tool provides different features to integrate with existing
-platforms/systems. This sometimes makes it more complex for DevOps teams to be able to create the CI/CD pipelines and maintain them on Kubernetes clusters. The *Cloud-Native CI/CD Pipeline* should be defined and executed in the Kubernetes native way. For example, the pipeline can be specified as Kubernetes resources using YAML format.
+Cloud Native アプリケーション/マイクロサービスを構築、テスト、デプロイ、管理するためのオープンソース CI/CD ツールは、オンプレミスからプライベート、パブリック、ハイブリッドクラウドまで、数多く存在します。各ツールは、既存のプラットフォーム/システムと統合するためのさまざまな機能を提供しています。そのため、DevOps チームが CI/CD パイプラインを作成し、Kubernetes クラスター上で保守することができなくなることがあります。*Cloud Native CI/CD パイプライン* は、Kubernetes Native の方法で定義し、実行する必要があります。例えば、パイプラインは YAML 形式で Kubernetes リソースとして指定することができます。
 
-*OpenShift Pipelines* is a Kubernetes-style CI/CD solution based on _Tekton_. It builds on the Tekton building blocks and provides a CI/CD experience through tight integration with OpenShift and Red Hat developer tools. OpenShift Pipelines is designed to run each step of the CI/CD pipeline in its own container, allowing each step to scale independently to meet the demands of the pipeline with the below features:
+*OpenShift Pipelines* は、_Tekton_ をベースにした Kubernetes スタイルの CI/CD ソリューションです。Tekton のビルディングブロックをベースに構築されており、OpenShift や Red Hat の開発者ツールと緊密に統合することで CI/CD 体験を提供します。OpenShift Pipelinesは、CI/CD パイプラインの各ステップを独自のコンテナで実行するように設計されており、各ステップを独立してスケールさせ、以下の機能でパイプラインの要求に対応できるようにしています。
 
-* Use standard Tekton CRDs to define pipelines that run as containers and scale on-demand.
-* Full control over team’s delivery pipelines, plugins and access control with no central CI/CD server to manage.
-* A streamlined user experience through the OpenShift Console developer perspective, CLIs, and IDEs.
+* 標準の Tekton CRD を使用して、コンテナとして実行され、オンデマンドでスケールするパイプラインを定義します。
+* チームのデリバリーパイプライン、プラグイン、アクセスコントロールを完全に制御し、中央 CI/CD サーバーで管理する必要はありません。
+* OpenShift Console の開発者視点、CLI、IDEによる合理化されたユーザー体験。
 
 image::pipeline-features.png[pipeline, 800]
 
 [NOTE]
 ====
-OpenShift Pipelines project is as a Developer Preview release. Developer Preview releases have features and functionality that might not be fully tested. Customers are encouraged to use and provide feedback on Developer Preview releases. Red Hat does not commit to fixing any reported issues and the provided features may not be available in future releases.
+OpenShift Pipelines プロジェクト は Developer Preview リリースです。開発者プレビューリリースには、完全にテストされていない可能性のある機能が含まれています。お客様は、開発者プレビューリリースを使用してフィードバックを提供することをお勧めします。Red Hat は報告された問題を修正することを約束しておらず、提供された機能は将来のリリースで利用できない可能性があります。
 ====
 
-In the lab, OpenShift Pipelines is already installed on OpenShift 4 cluster but if you want to install OpenShift Pipelines on your own OpenShift cluster, OpenShift Pipelines is provided as an add-on on top of OpenShift that can be installed via an operator available in the OpenShift OperatorHub.
+ラボでは OpenShift 4 クラスタに OpenShift Pipelines が既にインストールされていますが、自分の OpenShift クラスタに OpenShift Pipelines をインストールしたい場合は、OpenShift OperatorHub で利用できるオペレーターを介してインストールできる OpenShift 上のアドオンとして OpenShift Pipelines が提供されています。
 
-In order to define a pipeline, you need to create _custom resources_ as listed below:
+パイプラインを定義するには、以下のように _カスタムリソース_ を作成する必要があります。:
 
-* *Task*: a reusable, loosely coupled number of steps that perform a specific task (e.g. building a container image)
-* *Pipeline*: the definition of the pipeline and the tasks that it should perform
-* *PipelineResource*: inputs (e.g. git repository) and outputs (e.g. image registry) to and out of a pipeline or task
-* *TaskRun*: the execution and result (i.e. success or failure) of running an instance of task
-* *PipelineRun*: the execution and result (i.e. success or failure) of running a pipeline
+* *Task*: 特定のタスクを実行する再利用可能な疎結合のステップ数(例：コンテナイメージの構築)。
+* *Pipeline*: パイプラインの定義と実行すべきタスク
+* *PipelineResource*: パイプラインやタスクへの入力 (git リポジトリなど) と出力 (イメージレジストリなど) の出し入れ。
+* *TaskRun*: タスクのインスタンスの実行結果 (例 成功 or 失敗)
+* *PipelineRun*: パイプラインの実行結果 (例 成功 or 失敗)
 
 image::tekton-arch.png[severless, 800]
 
-For further details on pipeline concepts, refer to the https://github.com/tektoncd/pipeline/tree/master/docs#learn-more[Tekton documentation^] that provides an excellent guide for understanding various parameters and attributes available for defining pipelines.
+パイプラインの概念の詳細については、パイプラインの定義に使用できる様々なパラメータや属性を理解するための優れたガイドを提供している https://github.com/tektoncd/pipeline/tree/master/docs#learn-more[Tekton documentation^] を参照してください。
 
-In this lab, we will walk you through pipeline concepts and how to create and run a CI/CD pipeline for building and deploying microservices on OpenShift Serverless platform.
+このラボでは、パイプラインの概念と、OpenShift Serverless プラットフォーム上でマイクロサービスを構築してデプロイするための CI/CD パイプラインの作成と実行方法について説明します。
 
-Let's deploy a https://github.com/spring-projects/spring-petclinic[Spring PetClinic^] microservices app using the Spring Boot framework to `{{ USER_ID }}-cloudnative-pipeline` project.
+https://github.com/spring-projects/spring-petclinic[Spring PetClinic^] マイクロサービスアプリを Spring Boot フレームワークを使って `{{ USER_ID }}-cloudnative-pipeline` プロジェクトにデプロイしてみましょう。
 
-Create the Kubernetes objects for deploying the _PetClinic_ app on OpenShift. The deployment will not complete since there are no container images built for the PetClinic application yet. That you will do in the following sections through a CI/CD pipeline.
+OpenShift 上に _PetClinic_ アプリをデプロイするための Kubernetes オブジェクトを作成します。PetClinic アプリ用のコンテナイメージがまだ構築されていないので、デプロイは完了しません。これは以下のセクションで CI/CD パイプラインを介して行います。
 
-Open *petclinic.yaml* in _knative/pipeline_ of *payment-service* project and copy the following code into the YAML file:
+*payment-service* プロジェクトの _knative/pipeline_ で *petclinic.yaml* を開き、以下のコードを YAML ファイルにコピーしてください :
 
 [source,yaml,role="copypaste"]
 ----
@@ -581,42 +574,41 @@ spec:
     weight: 100
 ----
 
-Then create the object in Kubernetes:
+Kubernetes のオブジェクトを生成します :
 
 [source,sh,role="copypaste"]
 ----
 oc project {{ USER_ID }}-cloudnative-pipeline && oc create -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service/knative/pipeline/petclinic.yaml
 ----
 
-Visit the {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnative-pipeline[Topology View^] for the pipeline, and ensure you *don't* get the blue circles yet!
+パイプラインのために {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnative-pipeline[Topology View^] にアクセスし,  そして、まだ青い丸を得ることができないことを確認してください!
 
 image::petclinic-deployed-1.png[serverless, 500]
 
-*Tasks* consist of a number of steps that are executed sequentially. _Tasks_ are executed/run by creating TaskRuns. A TaskRun will schedule a Pod. Each step is executed in a separate container within the same pod. They can also have inputs and outputs in order to interact with other tasks in the pipeline.
+*タスク* は、順次実行される複数のステップで構成されています。TaskRun を作成することで _Task_ が実行されます。TaskRun は1つの Pod をスケジュールします。各ステップは、同じポッド内の別のコンテナで実行されます。また、パイプライン内の他のタスクと相互作用するために、入力と出力を持つこともできます。
 
-When a _task_ starts running, it starts a pod and runs each *step* sequentially in a separate container on the same pod. This task happens to have a single step, but tasks can have multiple steps, and, since they run within the same pod, they have access to the same volumes in order to cache files, access configmaps, secrets, etc. `Tasks` can also receive inputs (e.g., a git repository) and outputs (e.g., an image in a registry) in order to interact with each other.
+タスク _task_ が実行を開始すると、ポッドを起動し、同じポッド上の別のコンテナ内で各 *ステップ* を順次実行します。このタスクはたまたま単一のステップを持っていますが、タスクは複数のステップを持つことができ、同じポッド内で実行しているので、ファイルのキャッシュや configmaps、secret などにアクセスするために同じボリュームにアクセスすることができます。タスク `Tasks` は入力 (git リポジトリなど) と出力 (レジストリのイメージなど) を受け取って相互にやりとりすることもできます。
 
 [NOTE]
 ====
-Only the requirement for a git repository is declared on the task and not a specific git repository to be used. That allows _tasks_ to be reusable for multiple pipelines and purposes. You can find more examples of reusable _tasks_ in the https://github.com/tektoncd/catalog[Tekton Catalog^] and
-https://github.com/openshift/pipelines-catalog[OpenShift Catalog^] repositories.
+git リポジトリの要件だけがタスクに宣言されていて、使用する特定の git リポジトリを指定しているわけではありません。これにより、_tasks_ を複数のパイプラインや目的に合わせて再利用できるようになります。再利用可能な _task_ の例は https://github.com/tektoncd/catalog[Tekton Catalog^] や https://github.com/openshift/pipelines-catalog[OpenShift Catalog^] リポジトリにあります。
 ====
 
-We will need to create two pre-defined Tekton Tasks that we'll use in our pipeline that know how to compile Java apps and deploy them. Install the `openshift-client` and `s2i-java` Tekton tasks using the following command:
+Java アプリケーションをコンパイルしてデプロイする方法を知っている、パイプラインで使用する2つの定義済みの Tekton タスクを作成する必要があります。以下のコマンドを使って `openshift-client` と `s2i-java` Tekton タスクをインストールします :
 
 [source,sh,role="copypaste"]
 ----
 oc create -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service/knative/pipeline/openshift-client-task.yaml && oc create -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service/knative/pipeline/s2i-java-8-task.yaml
 ----
 
-Let’s confirm if the *tasks* are installed properly using https://github.com/tektoncd/cli/releases[Tekton CLI^] that already installed in CodeReady Workspaces:
+すでに CodeReady Workspaces にインストールされている https://github.com/tektoncd/cli/releases[Tekton CLI^] を使って、*tasks* が正しくインストールされているか確認してみましょう :
 
 [source,sh,role="copypaste"]
 ----
 tkn task list
 ----
 
-You will see the following 2 tasks:
+以下の二つのタスクを確認できます :
 
 [source,sh]
 ----
@@ -625,30 +617,29 @@ openshift-client   27 seconds ago
 s2i-java-8         27 seconds ago
 ----
 
-A pipeline defines a number of tasks that should be executed and how they interact with each other via their inputs and outputs.
+パイプラインは、実行されるべきタスクの数と、それらの入力と出力を介した相互作用の方法を定義します。
 
-In this lab, we will create a pipeline that takes the source code of PetClinic application from GitHub and then builds and deploys it on OpenShift using
-https://docs.openshift.com/container-platform/latest/builds/understanding-image-builds.html#build-strategy-s2i_understanding-image-builds[Source-to-Image(S2I)^].
+このラボでは、PetClinic アプリケーションのソースコードを GitHub から取得し、https://docs.openshift.com/container-platform/latest/builds/understanding-image-builds.html#build-strategy-s2i_understanding-image-builds[Source-to-Image(S2I)^] を使って OpenShift 上にビルドしてデプロイするパイプラインを作成します。
 
 image::pipeline-diagram.png[serverless, 700]
 
-This pipeline performs the following:
+このパイプラインは以下のことを実行します:
 
-* Clones the source code of the application from a Git repository (_app-git_ resource)
-* Builds the container image using the s2i-java-8 task that generates a Dockerfile for the application and uses https://buildah.io/[Buildah^] to build the image
-* The application image is pushed to an image registry (_app-image_ resource)
-* The new application image is deployed on OpenShift using the _openshift-cli_
+* Git リポジトリ (_app-git_ リソース) からアプリケーションのソースコードをクローンします。
+* アプリケーション用の Dockerfile を生成する s2i-java-8 タスクを使用してコンテナイメージをビルドし、https://buildah.io/[Buildah^] を使用してイメージをビルドします。
+* アプリケーションイメージはイメージレジストリにプッシュされます (_app-image_ リソース)
+* 新しいアプリケーションイメージは、_openshift-cli_ を使用して OpenShift 上にデプロイされます。
 
 [NOTE]
 ====
-You might have noticed that there are no references to the PetClinic Git repository and its image in the registry. That’s because _Pipelines_ in Tekton are designed to be generic and re-usable across environments and stages through the application’s lifecycle.
+PetClinic の Git リポジトリとそのイメージがレジストリにないことにお気づきかもしれません。これは、Tekton の _Pipelines_ は、アプリケーションのライフサイクルを通して、環境やステージを超えて再利用できるように設計されているからです。
 ====
 
-Pipelines abstract away the specifics of the Git source repository and image to be produced as *resources*. When triggering a pipeline, you can provide different Git repositories and image registries to be used during pipeline execution. Be patient! You will do that in a little bit in the next section.
+パイプラインは、*resources* として生成される Git ソースリポジトリやイメージの詳細を抽象化します。パイプラインをトリガーする際には、パイプラインの実行中に使用する Git リポジトリやイメージのレジストリを指定することができます。我慢してください! これについては次のセクションで少し説明します。
 
-The execution order of _tasks_ is determined by dependencies that are defined between the tasks via *inputs* and *outputs* as well as explicit orders that are defined via *runAfter*.
+_tasks_の実行順序は、*inputs* と *outputs* で定義されたタスク間の依存関係と、*runAfter* で定義された明示的な順序によって決定されます。
 
-In the OpenShift console, click the `+` button at the upper right, and paste in the following YAML and click *Create*:
+OpenShift コンソールで右上の `+` ボタンをクリックし、以下の YAML を貼り付けて *Create* をクリックします :
 
 [source,yaml,role="copypaste"]
 ----
@@ -689,13 +680,13 @@ spec:
         - spring-petclinic
 ----
 
-You will see the pipeline you have created:
+作成したパイプラインが表示されます :
 
 image::console-import-yaml-2.png[serverless, 800]
 
-Now that the pipeline is created, you can trigger it to execute the tasks specified in the pipeline. First, you should create a number of *PipelineResources* that contain the specifics of the Git repository and image registry to be used in the pipeline during execution. Expectedly, these are also reusable across multiple pipelines.
+パイプラインが作成されたので、パイプラインで指定したタスクを実行するためにパイプラインを起動します。まず、実行時にパイプラインで使用する Git リポジトリとイメージレジストリの仕様を含む *PipelineResources* をいくつか作成します。これらは複数のパイプラインにまたがって再利用可能です。
 
-The following *PipelineResource* defines the Git repository and reference for the PetClinic application. Click on `+` icon on the right top corner of the OpenShift console. Copy the following `petclinic-git` pipelineResource in `YAML` editor then click on *Create*:
+以下の *PipelineResource* は、PetClinic アプリケーションの Git リポジトリとリファレンスを定義しています。OpenShift コンソールの右上隅にある `+` アイコンをクリックします。以下の`petclinic-git` pipelineResource を `YAML` エディタでコピーし、*Create* をクリックします :
 
 [source,yaml,role="copypaste"]
 ----
@@ -712,7 +703,7 @@ spec:
     value: main
 ----
 
-And the following defines the OpenShift internal registry for the PetClinic image to be pushed to. Again, click on the `+` icon on the right top corner. Copy the following `petclinic-image` pipelineResource in `YAML` editor then click on *Create*:
+そして、以下は PetClinic イメージをプッシュするための OpenShift 内部レジストリを定義しています。ここでも右上隅の `+` アイコンをクリックします。以下の `petclinic-image` pipelineResource を`YAML` エディタでコピーし、*Create* をクリックします :
 
 [source,yaml,role="copypaste"]
 ----
@@ -727,14 +718,14 @@ spec:
     value: image-registry.openshift-image-registry.svc:5000/{{ USER_ID }}-cloudnative-pipeline/spring-petclinic
 ----
 
-To confirm they're created properly, execute the following _Tekton CLI_ in CodeReady Workspaces Terminal:
+正常に作成されていることを確認するために、CodeReady Workspaces Terminal で以下の _Tekton CLI_ を実行します :
 
 [source,sh,role="copypaste"]
 ----
 tkn resource ls
 ----
 
-You can see the list of resources created:
+作成されたリソースの一覧を見ることができます :
 
 [source,shell]
 ----
@@ -743,27 +734,27 @@ petclinic-git     git     url: https://github.com/spring-projects/spring-petclin
 petclinic-image   image   url: image-registry.openshift-image-registry.svc:5000/{{ USER_ID }}-cloudnative-pipeline/spring-petclinic
 ----
 
-A *PipelineRun* is how you can start a pipeline and tie it to the Git and image resources that should be used for this specific invocation. Let's go to {{ CONSOLE_URL }}/k8s/ns/{{ USER_ID }}-cloudnative-pipeline/tekton.dev\~v1alpha1~Pipeline[OpenShift Pipelines^] and click on *Start*:
+*PipelineRun* は、パイプラインを起動して、この特定の呼び出しに使用するべき Git やイメージリソースに結びつける方法です。では、{{{ CONSOLE_URL }}/k8s/ns/{{ USER_ID }}}-cloudnative-pipeline/tekton.dev~v1alpha1~Pipeline[OpenShift Pipelines^] に移動して、*Start* をクリックしてみましょう :
 
 image::pipeline-start.png[serverless, 800]
 
-This dialog box is where you bind the final target values for the source repo of the _build_ step, and the name of the image to deploy in the _deploy_ step. You can see default values, so just click on *Start*:
+このダイアログボックスでは、_build_ ステップのソースレポの最終ターゲット値と、_deploy_ ステップでデプロイするイメージの名前をバインドします。デフォルト値が表示されているので、*Start* をクリックするだけです :
 
 image::pipeline-start-popup.png[serverless, 700]
 
-As soon as you started the *petclinic-deploy-pipeline*, a pipelinerun is instantiated and pods are created to execute the tasks that are defined in the pipeline. After a few minutes, the pipeline should finish successfully. You can hover over the steps to get a quick snapshot of the step's progress, or click on the steps to see detailed logs of the steps.
+*petclinic-deploy-pipeline* を起動するとすぐに pipelinerun がインスタンス化され、パイプラインで定義されているタスクを実行するためのポッドが作成されます。数分後、パイプラインは正常に終了するはずです。ステップの上にカーソルを置くと、ステップの進捗状況を簡単にスナップショットで見ることができますし、ステップをクリックするとステップの詳細なログを見ることができます。
 
 image::pipeline-complete.png[serverless, 800]
 
-Once the build completes, on the {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnative-pipeline[Topology View^], and click on *Open URL*. You should see that the PetClinic image is successfully built and deployed.
+ビルドが完了したら、{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}/cloudnative-pipeline[Topology View^] 上で、*Open URL* をクリックします。PetClinic イメージが正常に構築され、デプロイされたことが確認できるはずです。
 
 image::petclinic-openurl.png[serverless, 800]
 
-=== Summary
+=== 概要
 
-In this module, we learned how to develop cloud-native applications using multiple Java runtimes (Quarkus and Spring Boot), Javascript (Node.js) and different datasources (i.e. PostgreSQL, MongoDB) to handle a variety of business use cases which implement real-time _request/response_ communication using REST APIs, high performing cacheable services using _Red Hat Data Grid_, event-driven/reactive shopping cart service using Apache Kafka in _Red Hat AMQ Streams_. Finally, we converted the payment service to be a *Serverless* application using _OpenShift Serverless_ with Knative.
+このモジュールでは、複数 のJava ランタイム(Quarkus と Spring Boot）、Javascript(Node.js)、異なるデータソース(PostgreSQL、MongoDB など)を使用して Cloud Native アプリケーションを開発し、REST API を使用したリアルタイムの _request/response_ 通信、_Red Hat Data Grid_ を使用した高パフォーマンスのキャッシュ可能なサービス、_Red Hat AMQ Streams_ で Apache Kafka を使用したイベントドリブン/リアクティブなショッピングカートサービスを実装した様々なビジネスユースケースに対応する方法を学びました。最後に、Knative で _OpenShift Serverless_ を利用して決済サービスを*Serverless* アプリケーションに変換しました。
 
-*Red Hat Runtimes* enables enterprise developers to design the advanced cloud-native architecture and develop, build, deploy the cloud-native application on hybrid cloud on the *Red Hat OpenShift Container Platform*. *Congratulations!*
+*Red Hat Runtimes* は、企業の開発者が高度なクラウドネイティブアーキテクチャを設計し、*Red Hat OpenShift Container Platform* 上のハイブリッドクラウド上でクラウドネイティブアプリケーションの開発、構築、デプロイを行うことを可能にします。おめでとうございます！
 
 ==== Additional Resources:
 

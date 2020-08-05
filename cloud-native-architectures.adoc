@@ -1,93 +1,93 @@
-== Cloud Native Application Architectures
+== Cloud Native アプリケーションアーキテクチャ
 :experimental:
 
-Developing applications that are reactive, imperative, event driven, and polyglot are all requirements of modern application architecture. While cloud infrastructure and container Kubernetes solutions, such as Red Hat OpenStack Platform and Red Hat OpenShift, provide a robust infrastructure foundation for distributed environments, similar seamless application services require building applications that take full advantage of such an infrastructure.
+リアクティブなアプリケーション、インプライベーティブなアプリケーション、イベントドリブンなアプリケーション、ポリグロットなアプリケーションを開発することは、すべて現代のアプリケーションアーキテクチャの要件です。Red Hat OpenStack Platform や Red Hat OpenShift などのクラウドインフラストラクチャやコンテナ Kubernetes ソリューションは、分散環境のための堅牢なインフラ基盤を提供していますが、同様のシームレスなアプリケーションサービスでは、このようなインフラをフルに活用したアプリケーションを構築する必要があります。
 
-Moreover, applications require hybrid and multi cloud architecture to thrive in the digital economy. A unified cloud native application environment has become essential to developers because it enables higher productivity and innovation with a full, cohesive development platform. An application environment is equally critical to operations because of the rapid change and high demands for scalability, agility, and reliability.
+さらに、アプリケーションは、デジタル経済の中で繁栄するために、ハイブリッドおよびマルチクラウドアーキテクチャを必要としています。統一された Cloud Native のアプリケーション環境は、完全にまとまった開発プラットフォームで生産性の向上とイノベーションを可能にするため、開発者にとって不可欠なものとなっています。アプリケーション環境は、急速な変化とスケーラビリティ、アジリティ、信頼性に対する高い要求のため、運用にとっても同様に重要です。
 
-In this module, we will learn what cloud-native architecture we need to design for running containerized applications on DevOps/Cloud Native platform in scale and speed. Then we will also develop cloud native applications based on architecture patterns such as high-performing cache, event-driven/reactive, and serverless using https://www.redhat.com/en/technologies/cloud-computing/openshift/application-runtimes[Red Hat Runtimes], https://developers.redhat.com/products/codeready-workspaces/overview[Red Hat CodeReady Workspaces^] and https://www.redhat.com/en/technologies/cloud-computing/openshift[Red Hat OpenShift Container Platform].
+このモジュールでは、DevOps / Cloud Native プラットフォーム上でコンテナ化されたアプリケーションをスケールとスピードで実行するために、どのようなクラウドネイティブアーキテクチャを設計する必要があるのかを学びます。その後、 https://www.redhat.com/en/technologies/cloud-computing/openshift/application-runtimes[Red Hat Runtimes] 、 https://developers.redhat.com/products/codeready-workspaces/overview[Red Hat CodeReady Workspaces^]、 https://www.redhat.com/en/technologies/cloud-computing/openshift[Red Hat OpenShift Container Platform] を使用して、高パフォーマンスキャッシュ、イベントドリブン/リアクティブ、サーバーレスなどのアーキテクチャパターンに基づいたクラウドネイティブアプリケーションの開発も行います。
 
-=== Capabilities of a Cloud Native Application Architectures?
+=== Cloud Native アプリケーションアーキテクチャの能力とは?
 
-The benefits of cloud native application architectures enable speed of development and deployment, flexibility, quality, and reliability. More importantly, it allows developers to integrate the applications with the latest open source technologies without a steep learning curve. While there are many ways to build and architect cloud native applications following are some great ingredients for consideration:
+Cloud Native アプリケーションアーキテクチャの利点は、開発とデプロイのスピード、柔軟性、品質、信頼性を可能にします。さらに重要なのは、開発者は、急な学習曲線なしで最新のオープンソース技術とアプリケーションを統合することができます。Cloud Native アプリケーションを構築してアーキテクチャを構築する方法は数多くありますが、以下に検討すべき素晴らしい要素をいくつか挙げます :
 
-* *Runtimes* - More likely to be written in the container first or/and Kubernetes native language, which means runtimes such as Java, Node.js, Go, Python, and Ruby, etc.
-* *Security* - Deploying and maintaining applications in a multi cloud, hybrid cloud application environment, security becomes of utmost importance and should be part of the environment.
-* *Observability* - The ability to observer applications and their behavior in the cloud. Tools that can give realtime metrics, and more information about the use e.g., Prometheus, Grafana, Kiali, etc.
-* *Efficiency* - Focused on tiny memory footprint, small artifact size, and fast booting time to make portable applications across hybrid/multi-cloud platforms. Primarily, it will leverage an expected spice in production via rapid scaling with consuming minimal computing resources.
-* *Interoperability* - Easy to integrate cloud native apps with the latest open source technologies such as Infinispan, MicroProfile, Hibernate, Apache Kafka, Jaeger, Prometheus, and more for building standard runtimes architecture.
-* *DevOps/DevSecOps* - Designed for continuous deployment to production in line with the minimum viable product (MVP), with security as part of the tooling together with development, automating testing, and collaboration.
+* *Runtimes* - Java、Node.js、Go、Python、Ruby などのランタイムを意味するランタイム、つまりコンテナファーストもしくは Kubernetes Native 言語で記述されたもの
+* *Security* - マルチクラウド、ハイブリッドクラウドのアプリケーション環境でアプリケーションをデプロイして維持する場合、セキュリティが最も重要になり、環境の一部となる必要があります。
+* *可観測性* - クラウド上でアプリケーションとその動作を観察できること。リアルタイムのメトリクスを提供できるツール、使用に関するより多くの情報を提供できるツール(例 : Prometheus、Grafana、Kialiなど)。
+* *効率性* -  小さなメモリフットプリント、小さなアーティファクトサイズ、高速な起動時間に焦点を当て、ハイブリッド/マルチクラウドプラットフォーム上でポータブルなアプリケーションを作成します。主に、最小限のコンピューティング リソースを消費しながら迅速なスケーリングを行うことで、本番環境で期待されるスパイスを活用します。
+* *相互運用性* - Infinispan、MicroProfile、Hibernate、Apache Kafka、Jaeger、Prometheusなどの最新のオープンソース技術と Cloud Native アプリを簡単に統合し、標準ランタイムアーキテクチャを構築することができます。
+* *DevOps/DevSecOps* - 最小限の実行可能な製品（MVP）に沿って、開発、テストの自動化、およびコラボレーションとともに、ツールの一部としてのセキュリティを備えた、本番環境への継続的なデプロイメントのために設計されています。
 
-=== How to build Cloud Native applications and architecture with Red Hat?
+=== Red Hat で Cloud Native アプリケーションとアーキテクチャを構築するには？
 
-_Red Hat Runtime​s​_ is a recommended set of products, tools, and components to develop and maintain cloud-native applications. It provides lightweight runtimes and frameworks for highly-distributed cloud environments such as microservices, with in-memory caching for fast data access, and messaging for quick data transfer supporting existing applications.
+_Red Hat Runtimes_ は、Cloud Native アプリケーションを開発・保守するための推奨製品、ツール、コンポーネントのセットです。マイクロサービスなどの高度に分散されたクラウド環境向けの軽量なランタイムとフレームワークを提供し、高速なデータアクセスを可能にするインメモリキャッシングや、既存のアプリケーションをサポートする迅速なデータ転送を可能にするメッセージング機能を備えています。
 
 image::rhar.png[Red Hat Runtimes Prducts and Components, 900]
 
-Red Hat Runtimes​​ also provide integrated and optimized products and components to deliver modern applications, whether the goal is to keep existing applications or create new ones. Applications Runtimes enable developers to containerize applications with a microservices architecture, improve data access speed via in-memory data caching, enhance application performance with messaging, or adapt cloud-native application development using modern development patterns and technologies.
+Red Hat Runtimes は、既存のアプリケーションを維持することを目的としている場合でも、新しいアプリケーションを作成する場合でも、最新のアプリケーションを提供するための統合された最適化された製品とコンポーネントを提供します。Applications Runtimes は、開発者がマイクロサービスアーキテクチャでアプリケーションをコンテナ化したり、インメモリデータキャッシングによるデータアクセス速度の向上、メッセージングによるアプリケーションパフォーマンスの向上、最新の開発パターンやテクノロジーを使用した Cloud Native アプリケーション開発の適応などを可能にします。
 
-Additionally, we have also chosen to use Quarkus for most of the applications in the labs. Read on to learn more about Quarkus.
+さらに、ラボでは、ほとんどのアプリケーションに Quarkus を使用しています。Quarkus の詳細については、続きをお読みください。
 
-==== What is Quarkus?
+==== Quarkus とは?
 
 image::quarkus-logo.png[quarkus-logo, 900]
 
-For years, the client-server architecture has been the de-facto standard to build applications. But a major shift happened. The one model rules them all age is over. A new range of applications and architecture styles has emerged and impacts how code is written and how applications are deployed and executed. HTTP microservices, reactive applications, message-driven microservices and serverless are now central players in modern systems.
+何年もの間、クライアント・サーバ・アーキテクチャは、アプリケーションを構築するための事実上の標準でした。しかし、大きな変化が起こりました。1つのモデルがすべての時代を支配していた時代は終わりました。新しい範囲のアプリケーションとアーキテクチャのスタイルが登場し、コードの書き方やアプリケーションの展開と実行の仕方に影響を与えています。HTTP マイクロサービス、リアクティブアプリケーション、メッセージ駆動型マイクロサービス、サーバーレスは、現在のシステムの中心的な役割を果たしています。
 
-https://Quarkus.io/[Quarkus] offers 4 major benefits to build cloud-native, microservices, and serverless Java applications:
+https://Quarkus.io/[Quarkus] Cloud Native 、マイクロサービス、サーバーレスJavaアプリケーションを構築するための4つの大きなメリットを提供しています :
 
-* _Developer Joy_ - Cohesive platform for optimized developer joy through unified configuration, Zero config with live reload in the blink of an eye, streamlined code for the 80% common usages with flexible for the 20%, and no hassle native executable generation.
-* _Unifies Imperative and Reactive_ - Inject the EventBus or the Vertx context for both Reactive and imperative development in the same application.
-* _Functions as a Service and Serverless_ - Superfast startup and low memory utilization. With Quarkus, you can embrace this new world without having to change your programming language.
-* _Best of Breed Frameworks & Standards_ - CodeReady Workspaces Vert.x, Hibernate, RESTEasy, Apache Camel, CodeReady Workspaces MicroProfile, Netty, Kubernetes, OpenShift, Jaeger, Prometheus, Apacke Kafka, Infinispan, and more.
+* _開発者の喜び_ - 統一された設定による開発者の喜びを最適化するための凝集したプラットフォーム、瞬時にライブリロードが可能なゼロコンフィグレーション、一般的な使用法のための 80% の合理化されたコードと柔軟な 20% のコード、そして手間のかからないネイティブ実行ファイル生成を提供します。
+* _インペラティブとリアクティブの統合_ - 同一アプリケーション内で Reactive と imperative の両方の開発のために EventBus または Vertx コンテキストを注入します。
+* _Functions as a Service とサーバーレス_ - 高速な起動と低いメモリ使用率。Quarkus を使用すると、プログラミング言語を変更することなく、この新しい世界を受け入れることができます。
+* _ベストオブブリードなフレームワークとスタンダード_ - CodeReady Workspaces Vert.x、Hibernate、RESTEasy、Apache Camel、CodeReady Workspaces MicroProfile、Netty、Kubernetes、OpenShift、Jaeger、Prometheus、Apacke Kafka、Infinispanなど。
 
-*Red Hat* offers the fully supported https://access.redhat.com/products/quarkus[Red Hat Build of Quarkus(RHBQ)^] with support and maintenance of Quarkus. In this workhop, you will use Quarkus to develop Kubernetes-native microservices and deploy them to OpenShift. Quarkus is one of the runtimes included in https://www.redhat.com/en/products/runtimes[Red Hat Runtimes^]. https://access.redhat.com/documentation/en-us/red_hat_build_of_quarkus[Learn more about RHBQ^].
+*Red Hat* Quarkusのサポートと保守が完全にサポートされた https://access.redhat.com/products/quarkus[Red Hat Build of Quarkus(RHBQ)^] を提供しています。このワークショップでは、Quarkus を使用して Kubernetes ネイティブのマイクロサービスを開発し、OpenShift にデプロイします。Quarkus は、 https://www.redhat.com/en/products/runtimes[Red Hat Runtimes^] に含まれるランタイムの一つです。 https://access.redhat.com/documentation/en-us/red_hat_build_of_quarkus[RHBQの詳細はこちら^]。
 
-=== Getting Ready for the labs
+=== ラボの準備
 
 [NOTE]
 ====
-If you’ve already completed other labs today then you'll be familiar with the CodeReady environment and can skip down to the *Import Project* section.
+他のラボを既に終えている方は、CodeReady 環境に慣れていると思いますので、*Import Project* セクションまでスキップしてください。
 ====
 
-==== If this is the first module you are doing today
+==== 本日最初のモジュールの場合
 
-You will be using Red Hat CodeReady Workspaces, an online IDE based on https://www.eclipse.org/che/[Eclipe Che^]. *Changes to files are auto-saved every few seconds*, so you don’t need to explicitly save changes.
+使用するのは、https://www.eclipse.org/che/[Eclipe Che^] をベースにしたオンライン IDE である Red Hat CodeReady Workspaces を使用します。*ファイルへの変更は数秒ごとに自動保存されます* ので、明示的に変更を保存する必要はありません。
 
-To get started, {{ ECLIPSE_CHE_URL }}[access the CodeReady Workspaces instance^] and log in using the username and password you’ve been assigned (e.g. `{{ USER_ID }}/{{ CHE_USER_PASSWORD }}`):
+開始するには、{{ ECLIPSE_CHE_URL }}[CodeReady Workspacesインスタンスにアクセス^] し、割り当てられたユーザー名とパスワード(例: `{{ USER_ID }}/{{ CHE_USER_PASSWORD }}` )を使用してログインします :
 
 image::che-login.png[cdw, 700]
 
-Once you log in, you’ll be placed on your personal dashboard. Click on the name of the pre-created workspace on the left, as shown below (the name will be different depending on your assigned number). You can also click on the name of the workspace in the center, and then click on the green {{ USER_ID}}-namespace that says _Open_ on the top right hand side of the screen.
+ログインすると、個人のダッシュボードが表示されます。以下のように、左側にあるあらかじめ作成されたワークスペースの名前をクリックします（割り当てられた番号によって名前が異なります）。また、中央のワークスペースの名前をクリックし、画面右上の _Open_ と書かれた緑色の {{ USER_ID}}-namespace をクリックします。
 
 image::che-landing.png[cdw, 700]
 
-After a minute or two, you’ll be placed in the workspace:
+1～2分後、ワークスペースに配置されます :
 
 image::che-workspace.png[cdw, 900]
 
-This IDE is based on Eclipse Che (which is in turn based on MicroSoft VS Code editor).
+このIDEは、Eclipse Cheをベースにしています(これは、MicroSoft VS Code editor をベースにしています)。
 
-You can see icons on the left for navigating between project explorer, search, version control (e.g. Git), debugging, and other plugins.  You’ll use these during the course of this workshop. Feel free to click on them and see what they do:
+プロジェクトエクスプローラ、検索、バージョン管理(Gitなど)、デバッグ、その他のプラグインの間を移動するためのアイコンが左に表示されています。 このワークショップではこれらを使います。自由にクリックして何ができるか見てみてください :
 
 image::crw-icons.png[cdw, 400]
 
 [NOTE]
 ====
-If things get weird or your browser appears, you can simply reload the browser tab to refresh the view.
+奇妙な動作をしたり、ブラウザが表示された場合は、ブラウザタブを再読み込みして表示を更新するだけです。
 ====
 
-Many features of CodeReady Workspaces are accessed via *Commands*. You can see a few of the commands listed with links on the home page (e.g. _New File.._, _Git Clone.._, and others).
+CodeReady Workspaces の多くの機能は *Commands* からアクセスできます。いくつかのコマンドは、ホームページにリンクが張られています（例： _New File..._ 、_Git Clone..._ など）。
 
-If you ever need to run commands that you don't see in a menu, you can press kbd:[F1] to open the command window, or the more traditional kbd:[Control+SHIFT+P] (or kbd:[Command+SHIFT+P] on Mac OS X).
+メニューに表示されていないコマンドを実行したい場合は、kbd:[F1] を押してコマンドウィンドウを開くか、従来の kbd:[Control+SHIFT+P]（Mac OS Xでは kbd:[Command+SHIFT+P] ）を押してコマンドを実行することができます。
 
-==== Import Project
+==== プロジェクトのインポート
 
-Let's import our first project. Click on *Git Clone..* (or type kbd:[F1], enter 'git' and click on the auto-completed _Git Clone.._ )
+最初のプロジェクトをインポートしてみましょう。*Git Clone..* をクリックします（または kbd:[F1]と入力して 'git' と入力し、自動補完された _Git Clone.._ をクリックします）。
 
 image::che-workspace-gitclone.png[cdw, 900]
 
-Step through the prompts, using the following value for **Repository URL**. If you use *FireFox*, it may end up pasting extra spaces at the end, so just press backspace after pasting:
+プロンプトの指示に従って、**リポジトリURL** に次の値を使用してください。*FireFox* を使用している場合、最後に余分なスペースを貼り付けてしまう可能性があるので、貼り付けた後はバックスペースを押してください :
 
 [source,none,role="copypaste"]
 ----
@@ -96,13 +96,13 @@ https://github.com/RedHat-Middleware-Workshops/cloud-native-workshop-v2m4-labs.g
 
 image::crw-clone-repo.png[crw,900]
 
-The project is imported into your workspace and is visible in the project explorer:
+プロジェクトはワークスペースにインポートされ、プロジェクトエクスプローラに表示されます:
 
 image::crw-clone-explorer.png[crw,900]
 
 ==== IMPORTANT: Check out proper Git branch
 
-To make sure you're using the right version of the project files, run this command in a CodeReady Terminal:
+プロジェクトファイルの正しいバージョンを使用していることを確認するには、CodeReadyターミナルでこのコマンドを実行してください :
 
 [source,sh,role="copypaste"]
 ----
@@ -111,13 +111,13 @@ cd $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs && git checkout ocp-4.5
 
 === Remove other projects
 
-If you've completed other modules today (such as `cloud-native-workshop-v2m1-labs`), remove them from your workspace by right-clicking on the project name in the explorer and choose *Delete* and accept the warning. Be sure not to delete the new project you just imported for this lab!
+今日他のモジュール(例えば `cloud-native-workshop-v2m1-lab` )を完了した場合は、エクスプローラでプロジェクト名を右クリックして *Delete* を選択し、警告を受け入れてワークスペースからそれらを削除してください。このラボのためにインポートした新しいプロジェクトを削除しないように注意してください。
 
 image::remove-workspace.png[remove, 700]
 
 [NOTE]
 ====
-The Terminal window in CodeReady Workspaces. You can open a terminal window for any of the containers running in your Developer workspace. For the rest of these labs, anytime you need to run a command in a terminal, you can use the *>_ New Terminal* command on the right:
+CodeReady ワークスペースのターミナルウィンドウ。Developer ワークスペースで実行しているコンテナのいずれかのターミナルウィンドウを開くことができます。これらのラボの残りの部分については、ターミナルでコマンドを実行する必要がある場合はいつでも、右側の *>_ New Terminal* コマンドを使用することができます :
 ====
 
 image::codeready-workspace-terminal.png[codeready-workspace-terminal, 700]

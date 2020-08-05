@@ -1,97 +1,97 @@
-= Lab2 - Creating Event-Driven/Reactive Services
+= Lab2 - イベント駆動/リアクティブサービス
 :experimental:
 
-Traditional microservice architectures are typically composed of many individual services with different functions. Each application service has many clients that need to communicate with the service for fetching data. It will become more complex to handle data streams because everything can be a stream of data such as end-user clicks, RESTful APIs, IoT devices generating data. And complexity rises when these services are running on hybrid or multi-cloud infrastructure.
+従来のマイクロサービスアーキテクチャは、通常、異なる機能を持つ多くの個別のサービスで構成されています。各アプリケーションサービスは、データを取得するためにサービスと通信する必要がある多くのクライアントを持っています。エンドユーザーのクリック、RESTful API、データを生成するIoTデバイスなど、すべてがデータのストリームになり得るため、データストリームを扱うのはより複雑になります。そして、これらのサービスがハイブリッドまたはマルチクラウドのインフラストラクチャ上で実行されている場合、複雑さは上昇します。
 
-In an event-driven architecture, we can treat data streams as *events* using reactive programming and distributed messaging. *Reactive programming* is an asynchronous programming paradigm concerned with data streams and the propagation of change. In the previous lab, we developed Inventory, Catalog, Shopping Cart and Order services with obvious interactions.
+イベント駆動型アーキテクチャでは、リアクティブ・プログラミングと分散メッセージングを使用して、データ・ストリームをイベントとして扱うことができます。*リアクティブ・プログラミング* は、データ・ストリームと変化の伝播に関係する非同期プログラミング・パラダイムです。前のラボでは、インベントリ、カタログ、ショッピングカート、注文サービスを明らかな相互作用を持って開発しました。
 
-In this lab, we’ll change our shopping cart and order implementation and add a payment service as an Event-Driven/Reactive application in our cloud-native appliation architecture. These cloud-native applications will use AMQ Streams (based on Apache Kafka) as a messaging/streaming backbome. AMQ Streams makes it easy to run Apache Kafka on OpenShift with key features:
+このラボでは、ショッピングカートと注文の実装を変更し、Cloud Native アプリケーションアーキテクチャのイベント駆動/リアクティブアプリケーションとして決済サービスを追加します。これらの Cloud Native アプリケーションは、メッセージング/ストリーミングのバックボーンとして AMQ Streams (Apache Kafka ベース) を使用します。AMQ Streams を使用すると、OpenShift 上で Apache Kafka を簡単に実行できるようになります :
 
-* Designed for horizontal scalability
-* Message ordering guarantee at the partition level
-* Message rewind/replay - _Long term_ storage allows the reconstruction of an application state by replaying the messages
+* 水平方向のスケーラビリティを考慮した設計
+* パーティションレベルでのメッセージ順序保証
+* メッセージの巻き戻し/再生 - _Long term_ ストレージは、メッセージを再生してアプリケーションの状態を再構築することを可能にします。
 
-=== Goals of this lab
+=== このラボのゴール
 
-The goal is to develop advanced cloud-native applications on *Red Hat Runtimes* and deploy them on *OpenShift 4* including *AMQ Streams* for distributed messaing capabilities. After this lab, you should end up with something like:
+目標は、*Red Hat Runtimes*上で高度なクラウドネイティブアプリケーションを開発し、分散メッシング機能のための*AMQ Streams*を含む*OpenShift 4*上にデプロイすることです。このラボの後には、次のようなものを完成させる必要があります :
 
 image::lab2-goal.png[goal, 700]
 
-Scalability is one of the flagship features of Apache Kafka. It is achieved by partitioning the data and distributing them across multiple brokers. Such data sharding also has a big impact on how clients connect and use the broker. This is especially visible when Kafka is running within a platform like Kubernetes but is accessed from outside of that platform.
+スケーラビリティは Apache Kafka の主要な機能の一つである。これはデータを分割し、複数のブローカーに分散させることで実現されます。このようなデータシャーディングは、クライアントがどのようにブローカーに接続して使用するかにも大きな影響を与えます。これは、Kafka が Kubernetes のようなプラットフォーム内で実行されているが、そのプラットフォームの外部からアクセスされている場合に特に顕著である。
 
-https://strimzi.io/[Strimzi] is an open source project that provides container images and operators for running https://developers.redhat.com/videos/youtube/CZhOJ_ysIiI/[Apache kafka].
+https://strimzi.io/[Strimzi] は、 https://developers.redhat.com/videos/youtube/CZhOJ_ysIiI/[Apache kafka] を実行するためのコンテナイメージと演算子を提供するオープンソースプロジェクトです。
 
-In this lab, we will use productized and supported versions of the Strimzi and Apache Kafka projects through https://www.redhat.com/en/technologies/jboss-middleware/amq?extIdCarryOver=true&sc_cid=701f2000001OH7TAAW[Red Hat AMQ^].
+このラボでは、 https://www.redhat.com/en/technologies/jboss-middleware/amq?extIdCarryOver=true&sc_cid=701f2000001OH7TAAW[Red Hat AMQ^] を通じて Strimzi と Apache Kafka プロジェクトの製品化されサポートされたバージョンを使用します。
 
-=== 1. Create a Kafka Cluster and Topics
+=== 1. Kafka クラスターとトピックの生成
 
-AMQ Streams is already installed using the following _Operators_ so you don’t need to install it in this lab:
+AMQ Streams は以下の _Operators_ を使って既にインストールされているので、このラボではインストールする必要はありません :
 
-* *Kafka Operator* - Responsible for deploying and managing Apache Kafka clusters within an OpenShift cluster.
-* *Topic Operator* - Responsible for managing Kafka topics within a Kafka cluster running within an OpenShift cluster.
-* *User Operator* - Responsible for managing Kafka users within a Kafka cluster running within an OpenShift cluster.
+* *Kafka Operator* - OpenShift クラスタ内の Apache Kafka クラスタのデプロイと管理を担当。
+* *Topic Operator* - OpenShift クラスタ内で稼働する Kafka クラスタ内の Kafka トピックの管理を担当。
+* *User Operator* - OpenShift クラスタ内で稼働する Kafka クラスタ内の Kafka ユーザの管理を担当。
 
-The basic architecture of operators in AMQ is seen below:
+AMQ におけるオペレーターの基本的なアーキテクチャは以下の通りです :
 
 image::kafka-operators-arch.png[amqstreams, 700]
 
-Let's create a **Kafka cluster**. Click *+Add* on the left, on the _From Catalog_ box on the project overview:
+** Kafka クラスタ**を作成してみましょう。左側のプロジェクト概要の _From Catalog_ ボックスにある *+Add* をクリックします :
 
 image::kafka-catalog.png[kafka, 700]
 
-Type in `kafka` in the search box, and click on the *Kafka*:
+検索ボックスに `kafka` と入力して、*Kafka* をクリックします :
 
 image::kafka-create.png[kafka, 700]
 
-Click on *Create* and you will enter YAML editor that defines a *Kafka* Cluster. Keep the all values as-is then click on *Create* on the botton:
+*Create* をクリックすると、YAML エディタで *Kafka* クラスタを定義します。全ての値をそのままにして、下部の *Create* をクリックしてください :
 
 image::kafka-create-detail.png[kafka, 700]
 
-Next, we will create Kafka _Topic_. Click _Add > From Catalog_ again, type in `kafka topic` in the search box, and click on the *Kafka Topic*:
+次に、Kafka _Topic_ を作成します。もう一度、_Add > From Catalog_ をクリックし、検索ボックスに `kafka topic` と入力して、*Kafka Topic* をクリックします :
 
 image::kafka-topic-catalog.png[kafka, 700]
 
-Click on *Create* and you will enter YAML editor that defines a *KafkaTopic* object. Change the name to `orders` as shown then click on *Create* on the bottom:
+*Create* をクリックすると、YAML エディタで *KafkaTopic* オブジェクトを定義します。名前を `orders` に変更して、下部の *Create* をクリックしてください :
 
 image::kafka-topic-orders-create.png[kafka, 700]
 
-Create another topic using the same process as above, but called `payments`:
+上記と同じプロセスを使用して別のトピックを作成しますが、名前は `payments` です :
 
 image::kafka-topic-catalog.png[kafka, 700]
 
-Change the name to `payments` then click on *Create* on the bottom.
+名前を `payments` に変更して、下部の *Create* をクリックします。
 
 image::kafka-topic-payments-create.png[kafka, 700]
 
-*Well done!* You now have a running Kafka cluster with two Kafka Topics called `payments` and `orders`.
+*よくできました。* これで、Kafka クラスタが `payments` と `orders` という 2 つの Kafka トピックで動作していることになります。
 
 image::kafka-topics-created.png[kafka, 700]
 
-=== 2. Develop and Deploy Payment Service
+=== 2. 決済サービスの開発とデプロイ
 
-Our _Payment Service_ will offer online services for accepting electronic payments by a variety of payment methods including credit card or bank-based payments when orders are checked out in shopping cart. It doesn’t really do anything but will represent a payment microservice that will *process* online shopping orders as they are posted to our services.
+私たちの _Payment Service_ は、ショッピングカートで注文がチェックアウトされた際に、クレジットカードや銀行ベースの支払いを含む様々な支払い方法で電子的な支払いを受け入れるためのオンラインサービスを提供します。実際には何もしませんが、オンラインショッピングの注文が当社のサービスに投稿されたときに*処理する支払いマイクロサービスを表しています。
 
-In CodeReady Workspaces, expand *payment-service* directory.
+CodeReady Workspaces で、*payment-service* ディレクトリを展開します。
 
 image::codeready-workspace-payment-project.png[catalog, 700]
 
-In this step, we will learn how our Quarkus-based payment service can use Kafka to receive order events and _react_ with payment events.
+このステップでは、Quarkus ベースの決済サービスが Kafka を使用して注文イベントを受信し、決済イベントに _反応_ する方法を学びます。
 
-Let's add Maven Dependencies using Quarkus Kafka extensions in CodeReady Workspaces Terminal:
+CodeReady Workspaces Terminal で Quarkus Kafka の拡張機能を使って Maven の依存関係を追加してみましょう :
 
 [source,sh,role="copypaste"]
 ----
 mvn quarkus:add-extension -Dextensions="kafka" -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service
 ----
 
-You should see in the output:
+アウトプットに以下を確認することができます :
 
 [source,console]
 ----
 ✅ Adding extension io.quarkus:quarkus-smallrye-reactive-messaging-kafka
 ----
 
-This command imports the Kafka extensions for Quarkus applications and provides all the necessary capabilities to integrate with Kafka clusters. It adds this to `pom.xml` for you:
+このコマンドは、Quarkus アプリケーション用の Kafka 拡張機能をインポートし、Kafka クラスタと統合するために必要なすべての機能を提供します。これを `pom.xml` に追加します。:
 
 [source,xml]
 ----
@@ -99,14 +99,13 @@ This command imports the Kafka extensions for Quarkus applications and provides 
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-smallrye-reactive-messaging-kafka</artifactId>
-      <version>${quarkus.version}</version>
     </dependency>
     ...
 ----
 
-Let’s start by adding injecting configuration using *@ConfigProperty* and a *Producer* field which will be used to send messages. We’ll also add a `log` field so we can see debug messages later on.
+まず、*@ConfigProperty* とメッセージを送信するための *Producer* フィールドを使って設定を注入することから始めましょう。また、後でデバッグメッセージを見ることができるように `log` フィールドを追加します。
 
-Add this code to the `PaymentResource.java` file (in the `src/main/java/com/redhat/cloudnative` directory) at the `// TODO: Add Messaging ConfigProperty here` marker:
+このコードを `PaymentResource.java` ファイル (`src/main/java/com/redhat/cloudnative` ディレクトリ) の `// TODO: Add Messaging ConfigProperty here` マーカーに追加します :
 
 [source,java,role="copypaste"]
 ----
@@ -127,9 +126,9 @@ Add this code to the `PaymentResource.java` file (in the `src/main/java/com/redh
     public static final Logger log = LoggerFactory.getLogger(PaymentResource.class);
 ----
 
-Next, we need a method to handle incoming events, which in this lab will be coming directly from Kafka, but later will come through as HTTP POST events.
+次に、このラボではKafka から直接送られてきますが、後に HTTP POST イベントとして送られてくる受信イベントを処理するためのメソッドが必要です。
 
-Add this code at the `// TODO: Add handleCloudEvent method here` marker:
+`// TODO: Add handleCloudEvent method here` マーカーの箇所に次のコードを追加してください :
 
 [source,java,role="copypaste"]
 ----
@@ -159,11 +158,11 @@ Add this code at the `// TODO: Add handleCloudEvent method here` marker:
         }
     }
 ----
-<1> This will simulate a 5 second credit card processing time
+<1> これは、5 秒のクレジットカード処理時間をシミュレートします
 
-Now we need to implement the `pass()` and `fail()` methods referenced above. These methods will send messages to Kafka using our _producer_ field.
+ここで、上で参照した `pass()` と `fail()` メソッドを実装する必要があります。これらのメソッドは _producer_ フィールドを使って Kafka にメッセージを送信します。
 
-Add the following code to the `// TODO: Add pass method here` marker:
+`// TODO: Add pass method here` マーカーの場所に次のコードを追加してください :
 
 [source,java,role="copypaste"]
 ----
@@ -179,7 +178,7 @@ Add the following code to the `// TODO: Add pass method here` marker:
     }
 ----
 
-Add this code to the `// TODO: Add fail method here` marker:
+`// TODO: Add fail method here` マーカーの箇所に次のコードを追加してください :
 
 [source,java,role="copypaste"]
 ----
@@ -194,9 +193,9 @@ Add this code to the `// TODO: Add fail method here` marker:
     }
 ----
 
-Next, add a method that will receive events from Kafka. We will use the MicroProfile reactive messaging API `@Incoming` annotation to do this.
+次に、Kafka からイベントを受け取るメソッドを追加します。これには MicroProfile のリアクティブメッセージング API `@Incoming` アノテーションを使います。
 
-Add this code to the `// TODO: Add consumer method here` marker:
+`// TODO: Add consumer method here` マーカーの箇所に次のコードを追加してください :
 
 [source,java,role="copypaste"]
 ----
@@ -210,9 +209,9 @@ Add this code to the `// TODO: Add consumer method here` marker:
     }
 ----
 
-And finally, we need a method to initialize the Kafka producer (the consumer will be initialized automatically via Quarkus Kafka extension). We will use the Quarkus `StartupEvent` Lifecycle listener API, with the `@Observes` annotation to mark this method as one that should run when the app starts:
+最後に、Kafka のプロデューサーを初期化するためのメソッドが必要です(コンシューマーは Quarkus Kafka 拡張機能を介して自動的に初期化されます)。Quarkus の `StartupEvent` Lifecycle リスナー API を使用し、`@Observes` アノテーションを付けて、このメソッドをアプリの起動時に実行すべきものとしてマークします :
 
-Add this code to the `// TODO: Add init method here` marker:
+`// TODO: Add init method here` マーカーの箇所に次のコードを追加してください :
 
 [source,java,role="copypaste"]
 ----
@@ -226,11 +225,11 @@ Add this code to the `// TODO: Add init method here` marker:
     }
 ----
 
-This method will consume Kafka streams from the `orders` topic and call our `handleCloudEvent()` method. Later on we’ll delete this method and use Knative Events to handle the incoming stream. But for now we’ll use this method to listen to the topic.
+このメソッドは `orders` トピックから Kafka ストリームを消費し、`handleCloudEvent()` メソッドを呼び出します。後でこのメソッドを削除して、Knative Events を使用して受信ストリームを処理します。しかし、今のところはこのメソッドを使用してトピックをリッスンします。
 
-Quarkus and its extensions are configured by an `application.properties` file. Open this file (it is in the `src/main/resources` directory).
+Quarkus とその拡張機能は `application.properties` ファイルによって設定されます。このファイルを開きます(`src/main/resources` ディレクトリ)。
 
-Add these values to the file at the `# TODO: Add for messaging configuration` marker:
+`# TODO: Add for messaging configuration` マーカーの箇所にこれらの値を追加してください :
 
 [source,properties,role="copypaste"]
 ----
@@ -252,24 +251,24 @@ mp.messaging.incoming.orders.enable.auto.commit=true
 mp.messaging.incoming.orders.request.timeout.ms=30000
 ----
 
-Build and deploy the project using using the OpenShift extension, which will use the maven plugin to deploy via CodeReady Workspaces Terminal:
+OpenShift 拡張機能を使用してプロジェクトをビルドしてデプロイし、CodeReady Workspaces Terminal を介してデプロイするために maven プラグインを使用します :
 
 [source,sh,role="copypaste"]
 ----
 mvn clean package -DskipTests -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service
 ----
-The output should end with `BUILD SUCCESS`.
+出力は `BUILD SUCCESS` で終わるはずです。
 
-Make sure it's actually done rolling out:
+実際に展開されていることを確認してください :
 
 [source,sh,role="copypaste"]
 ----
 oc rollout status -w dc/payment
 ----
 
-Wait for that command to report *replication controller _payment-1_ successfully rolled out* before continuing.
+続ける前に、そのコマンドが *replication controller _payment-1_ successfully rolled out* を報告するのを待ちます。
 
-And label the items with proper icons:
+そして、アイテムには適切なアイコンでラベルを貼ります :
 
 [source,sh,role="copypaste"]
 ----
@@ -278,15 +277,15 @@ oc annotate dc/payment app.openshift.io/connects-to=my-cluster --overwrite && \
 oc annotate dc/payment app.openshift.io/vcs-ref=ocp-4.5 --overwrite
 ----
 
-Finally, make sure it’s actually done rolling out. Visit the {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] for the orders. Ensure you get the blue circles!
+最後に、実際にロールアウトが完了していることを確認します。オーダーは {{console_url }}/topology/ns/{{user_id }}}-cloudnativeapps[Topology View^] にアクセスしてください。青い丸が表示されていることを確認してください!
 
 image::payment-topology.png[order, 700]
 
-In order to test the payment application, click on the `my-cluster-kafka-0` pod:
+支払いアプリケーションをテストするには、`my-cluster-kafka-0` のポッドをクリックします。:
 
 image::my-cluster-kafka-0.png[payment, 700]
 
-We will watch the Kafka topic via a CLI to confirm the messages are being sent/received in Kafka. Click on the *Terminal* tab in OpenShift (not in CodeReady!) then execute the following command:
+Kafka トピックを CLI 経由で見て、Kafka でメッセージが送受信されていることを確認します。OpenShift の *Terminal* タブをクリックして(CodeReady Workspace ではありません！)、以下のコマンドを実行します :
 
 [source,sh,role="copypaste"]
 ----
@@ -295,30 +294,29 @@ bin/kafka-console-consumer.sh --topic payments --bootstrap-server localhost:9092
 
 image::kafka-console-consumer.png[payment, 900]
 
-Keep this tab open to act as a debugger for Kafka messages.
+このタブを開いたままにしておくと、Kafka メッセージのデバッガとして動作します。
 
-Now, back in *CodeReady Workspaces*, open a new Terminal.
+さて、*CodeReady Workspaces* に戻って、新しいターミナルを開きます。
 
-Let’s produce a new topic message using `curl`:
+`curl`を使って新しいトピックメッセージを作成してみましょう :
 
-First, fetch the URL of our new payment service and store it in an environment variable:
+まず、新しい決済サービスのURLを取得し、環境変数に格納します :
 
 [source,sh,role="copypaste"]
 ----
 export URL=http://$(oc get route -n {{ USER_ID}}-cloudnativeapps payment -o jsonpath={% raw %}"{.spec.host}"{% endraw %})
 ----
 
-Then execute this to HTTP POST a message to our payment service with an example order:
+次に、これを実行して、HTTP POST で決済サービスにメッセージを注文の例と共に送信します :
 
 [source,sh,role="copypaste"]
 ----
 curl -i -H 'Content-Type: application/json' -X POST -d'{"orderId": "12321","total": "232.23", "creditCard": {"number": "4232454678667866","expiration": "04/22","nameOnCard": "Jane G Doe"}, "billingAddress": "123 Anystreet, Pueblo, CO 32213", "name": "Jane Doe"}' $URL
 ----
 
-This will return in 5 seconds (our fake credit card processing time).
+これは5秒で戻ってきます(当社の偽クレジットカード処理時間)。
 
-The payment service will recieve this _order_ and produce a _payment_ result on the Kafka _payment_ topic. You will see the
-following result in `Pod Terminal`:
+支払いサービスはこの _order_ を受信し、Kafka _payment_ トピックに _payment_ の結果を生成します。`Pod Terminal`では以下のような結果が得られます :
 
 [source,shell]
 ----
@@ -326,34 +324,33 @@ following result in `Pod Terminal`:
 ----
 
 
-This shows that the `order-service` can successfully process orders in the backend and send them to the payment processor.
+これは、`order-service` がバックエンドで注文を正常に処理し、支払い処理者に送ることができることを示しています。
 
-Before moving to the next step, stop the Kafka consumer console via kbd:[CTRL+C]:
+次のステップに進む前に、kbd:[CTRL+C] で Kafka コンシューマコンソールを停止します :
 
 image::kafka-console-consumer-stop.png[payment, 900]
 
-=== 3. Adding Kafka Client to Cart Service
+=== 3. カートサービスに Kafka クライアントを追加
 
-By now we have added several microservices to operate on our retail shopping data. Quite often, other services or functions would need the data we are working with. e.g. once a user checks out, there are other services like an _Order Service_ and our _Payment Service_ that will need this information, and would most likely want to process further. So we will integrate our Cart service
-with Kafka so that it can send an order message when a shopper checks out.
+これまでに、小売店のショッピングデータで動作するマイクロサービスをいくつか追加しました。例えば、一度ユーザーがチェックアウトすると、注文サービスや支払いサービスのような他のサービスがこの情報を必要とし、さらに処理をしたいと考えています。そこで、カートサービスを Kafka と統合して、買い物客がチェックアウトしたときに注文メッセージを送信できるようにします。
 
-Add Maven Dependencies using Quarkus *Kafka* Extensions:
+Quarkus *Kafka* 拡張機能を使用して Maven の依存関係を追加します :
 
 [source,sh,role="copypaste"]
 ----
 mvn quarkus:add-extension -Dextensions="kafka" -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/cart-service
 ----
 
-You should see in the output:
+以下の出力を確認できます :
 
 [source,console]
 ----
 ✅ Adding extension io.quarkus:quarkus-smallrye-reactive-messaging-kafka
 ----
 
-This will add the Kafka extension and APIs to our Cart service app.
+これにより、カートサービスアプリに Kafka 拡張機能と API が追加されます。
 
-Like our Payment service, add this code to the `// TODO: Add annotation of orders messaging configuration here` marker inside the `CartResource` class inside the `com.redhat.cloudnative` package in the `cart-service` subdirectory of your workspace:
+支払いサービスと同様に、このコードを `// TODO: ワークスペースの `cart-service` サブディレクトリの `com.redhat.cloudnative` パッケージ内の `CartResource` クラス内の `ここに注文メッセージング設定の注釈を追加する` マーカーに追加します :
 
 [source,java,role="copypaste"]
 ----
@@ -372,7 +369,7 @@ Like our Payment service, add this code to the `// TODO: Add annotation of order
     private Producer<String, String> producer;
 ----
 
-Next, `un-comment` (or add if they are missing) the following `import` statements:
+次に、以下の `import` 文の `コメントを解除` します (なければ追加します):
 
 [source,java]
 ----
@@ -382,7 +379,7 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.internals.RecordHeaders;
 ----
 
-The `init()` method creates the Kafka configuration, and we have externalized this configuration and injected the variables as properties on the class. Replace the empty `init()` method with this code:
+`init()` メソッドは Kafka の設定を作成しますが、この設定を外部化してクラスのプロパティとして変数を注入しています。空の `init()` メソッドを以下のコードで置き換えます :
 
 [source,java,role="copypaste"]
 ----
@@ -396,8 +393,7 @@ The `init()` method creates the Kafka configuration, and we have externalized th
     }
 ----
 
-The `sendOrder()` method is quite simple, it takes the Order POJO as a param and serializes that into JSON to send over the Kafka
-topic. Replace the empty `sendOrder()` method with this code:
+これは、Order POJO をパラメタとして受け取り、それを JSON にシリアライズして Kafka トピックに送信します。空の `sendOrder()` メソッドをこのコードで置き換えます :
 
 [source,java,role="copypaste"]
 ----
@@ -409,7 +405,7 @@ topic. Replace the empty `sendOrder()` method with this code:
     }
 ----
 
-Now that we have those methods, Let's add a call to our `sendOrder()` method when we are checking out. Replace the code for `checkout()` with this code:
+それでは、チェックアウト時に `sendOrder()` メソッドに呼び出しを追加してみましょう。`checkout()` のコードを以下のコードに置き換えてください:
 
 [source,java,role="copypaste"]
 ----
@@ -424,7 +420,7 @@ Now that we have those methods, Let's add a call to our `sendOrder()` method whe
     }
 ----
 
-Almost there! Next let’s add the configuration to our `application.properties` file at the `# TODO: Add Kafka messaging keys and values here` marker: (in the `src/main/resources` of the `cart-service` project):
+もうすぐです。次に、`# TODO: Add Kafka messaging keys and values here` マーカーの `application.properties` ファイルに設定を追加してみましょう。(`cart-service` プロジェクトの `src/main/resources`) :
 
 [source,none,role="copypaste"]
 ----
@@ -435,7 +431,7 @@ mp.messaging.outgoing.orders.value.serializer=org.apache.kafka.common.serializat
 mp.messaging.outgoing.orders.key.serializer=org.apache.kafka.common.serialization.StringSerializer
 ----
 
-Re-package the _cart service_ using the following command, which will use the maven plugin to deploy via CodeReady Workspaces Terminal:
+以下のコマンドを使用して _cart service_ を再パッケージ化し、CodeReady Workspaces Terminal を介してデプロイするために maven プラグインを使用します :
 
 [source,sh,role="copypaste"]
 ----
@@ -444,27 +440,27 @@ oc label dc/cart app.kubernetes.io/part-of=cart --overwrite &&  \
 oc annotate dc/cart app.openshift.io/connects-to=my-cluster,datagrid-service --overwrite
 ----
 
-=== 4. Adding Kafka Client to Order Service
+=== 4. オーダーサービスへ Kafka クライアントの追加
 
-Like the *payments* service, our *order* service will listen for orders being placed, but will not process payments - instead the order service will merely record the orders and their states for eventual display in the UI. Let’s add this capability to the order service.
+*payments* サービスと同様に、*order* サービスは注文をリッスンしますが、支払いは処理しません。この機能をオーダーサービスに追加してみましょう。
 
-Add Maven Dependencies using Quarkus *Kafka* Extensions:
+Quarkus *Kafka* 拡張機能を使用してMavenの依存関係を追加します :
 
 [source,sh,role="copypaste"]
 ----
 mvn quarkus:add-extension -Dextensions="kafka" -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/order-service
 ----
 
-You should see in the output:
+以下のアウトプットを確認できます :
 
 [source,console]
 ----
 ✅ Adding extension io.quarkus:quarkus-smallrye-reactive-messaging-kafka
 ----
 
-This command generates a Maven project, importing the Kafka extensions for Quarkus applications and provides all the necessary capabilities to integrate with Kafka and subscribe to the _payments_ and _orders_ topic.
+このコマンドは、Quarkus アプリケーション用の Kafka 拡張機能をインポートして Maven プロジェクトを生成し、Kafka と統合して _payments_ と _orders_ トピックをサブスクライブするために必要なすべての機能を提供します。
 
-To process the incoming and outgoing messages, Create a new Java class named `KafkaOrders.java` in the `src/main/java/com/redhat/cloudnative` directory to consume messages from the Kafka _orders_ and _payments_ topic. Copy the following entire code into _KafkaOrders.java_.
+着信メッセージと発信メッセージを処理するには、`src/main/java/com/redhat/cloudnative` ディレクトリに `KafkaOrders.java` という名前の新しい Java クラスを作成して、Kafka の _orders_ と _payments_ トピックからのメッセージを利用します。以下のコード全体を _KafkaOrders.java_ にコピーします。
 
 [source,java,role="copypaste"]
 ----
@@ -526,7 +522,7 @@ public class KafkaOrders {
 }
 ----
 
-Almost there; Next Let's add the configuration to our `src/main/resources/application.properties` file at the `# TODO: Add for messaging configuration` marker in the _order-service_ project:
+次に `src/main/resources/application.properties` ファイルの `# TODO: Add for messaging configuration` マーカーに設定を追加してみましょう :
 
 [source,none,role="copypaste"]
 ----
@@ -554,7 +550,7 @@ mp.messaging.incoming.orders.enable.auto.commit=true
 mp.messaging.incoming.orders.request.timeout.ms=30000
 ----
 
-Re-package the order service using the following command, which will use the maven plugin to deploy via CodeReady Workspaces Terminal:
+次のコマンドを使用して注文サービスを再パッケージ化し、CodeReady Workspaces Terminal を介してデプロイするために maven プラグインを使用します。:
 
 [source,sh,role="copypaste"]
 ----
@@ -563,40 +559,40 @@ oc label dc/order app.kubernetes.io/part-of=order --overwrite &&  \
 oc annotate dc/order app.openshift.io/connects-to=my-cluster,order-database --overwrite
 ----
 
-Wait for all of the rebuilds and redeployments to complete, and you have all your blue circles!
+すべての再構築と再配置が完了するのを待てば、青い丸がすべて完成します！
 
 image::coolstore-ui_event-topology.png[coolstore-ui, 700]
 
-Let’s confirm if the all services works correctly using `Kafka` messaging via coolstore GUI test.
+Coolstore の GUI テストで `Kafka` メッセージングを使って、すべてのサービスが正常に動作するかどうかを確認してみましょう。
 
-=== 5. End to End Functional Testing
+=== 5. エンドツーエンドの機能テスト
 
-Let’s go shopping! Access the http://coolstore-ui-{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN}}[Red Hat Cool Store^]!
+お買い物に行こう。 http://coolstore-ui-{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN}}}[Red Hat Cool Store^] にアクセスします。
 
-Add some cool items to your shopping cart in the following shopping scenarios:
+以下のショッピングシナリオでは、ショッピングカートにいくつかのクールなアイテムを追加します。:
 
 [arabic]
-. Add a _Red Hat Fedora_ to your cart by click on *Add to Cart*. You will see the `Success! Added!` message under the top menu.
+. *Add to Cart* をクリックして、_Red Hat Fedora_ をカートに追加してください。トップメニューの下に `Success! Added!」というメッセージが表示されます。
 
 image::add-to-cart.png[serverless, 1000]
 
 [arabic, start=2]
-. Go to the *Your Shopping Cart* tab and click on the *Checkout* button . Input the credit card information. The Card Info should be 16 digits and begin with the digit `4`. For example `4123987754646678`.
+. *Your Shopping Cart* タブに移動し、*Checkout* ボタンをクリックします。クレジットカード情報を入力します。カード情報は16桁で、数字の `4` で始まる必要があります。例えば、`4123987754646678` のようになります。
 
 [NOTE]
 ====
-Our fake credit card processor will look for credit card numbers that begin with `4`. Any credit card number that does not start with `4` will result in a `FAILED` processing. This is a good way to check the logic of our code!
+当社の偽クレジットカード処理業者は、`4`で始まるクレジットカード番号を探します。`4 で始まらないクレジットカード番号は `FAILED` 処理になります。これは、私たちのコードのロジックをチェックする良い方法です。
 ====
 
 image::checkout.png[serverless, 1000]
 
 [arabic, start=3]
-. Input your Credit Card information to pay for the items:
+. クレジットカード情報を入力して商品をお支払いください :
 
 image::input-cc-info.png[serverless, 1000]
 
 [arabic, start=4]
-. Confirm the _Payment Status_ of the your shopping items in the *All Orders* tab. It should be `Processing`.
+. *All Orders* タブの _Payment Status_ を確認してください。`Processing`になっているはずです。
 
 image::payment-processing.png[serverless, 1000]
 
@@ -605,13 +601,13 @@ image::payment-processing.png[serverless, 1000]
 
 [NOTE]
 ====
-If the status is still `Processing`, the order service is processing incoming Kafka messages and storing them in MongoDB. Please reload the page a few times more.
+しばらくしてから、*All Orders* ページをリロードして、支払いステータスが `COMPLETED` または `FAILED` に変更されたことを確認してください。
 ====
 
 image::payment-completedorfailed.png[serverless, 1000]
 
-=== Summary
+=== 概要
 
-In this scenario we developed an _Event-Driven/Reactive_ cloud-native appliction to deal with data streams from the shopping cart service to the order service and payment service using _Apache Kafka_. We also used Quarkus and its _Kafka extension_ to integrate the app with Kafka. _AMQ Streams_, a fully supported Kafka solution from Red Hat, enables you to create Apache Kafka clusters very easily via the OpenShift developer catalog.
+このシナリオでは、_Apache Kafka_を使用して、ショッピングカートサービスから注文サービス、決済サービスまでのデータストリームを扱う _Event-Driven/Reactive_ Cloud Native アプリを開発しました。また、アプリを Kafka と統合するために、Quarkus とその _Kafka extension_ を使用しました。Red Hat が完全にサポートしている Kafka ソリューションである _AMQ Streams_ を使用すると、OpenShift の開発者カタログを介して Apache Kafka クラスタを非常に簡単に作成することができます。
 
-We now have message-driven microservices for implementing reactive systems, where all the components interact using asynchronous message passing for greater reliability, scalability, and faster time to market. Most importantly, Quarkus is perfectly suited to implement event-driven microservices and reactive systems. *Congratulations!*
+現在では、リアクティブシステムを実装するためのメッセージ駆動型のマイクロサービスがあり、すべてのコンポーネントが非同期のメッセージパッシングを使用して相互作用するため、信頼性、拡張性、市場投入までの時間が短縮されています。最も重要なことは、Quarkus は、イベント駆動型のマイクロサービスやリアクティブシステムの実装に完璧に適しているということです。*Congratulations!*
