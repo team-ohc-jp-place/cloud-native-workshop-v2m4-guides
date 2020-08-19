@@ -150,7 +150,7 @@ mvn quarkus:add-extension -Dextensions="jdbc-postgresql" -f $CHE_PROJECTS_ROOT/c
 ✅ Adding extension io.quarkus:quarkus-jdbc-postgresql
 ----
 
-まず、{{console_url }}[OpenShift web console^] で新規ブラウザを開きます :
+まず、{{ CONSOLE_URL }}[OpenShift web console^] で新規ブラウザを開きます :
 
 image::openshift_login.png[openshift_login, 700]
 
@@ -168,7 +168,7 @@ image::openshift_landing.png[openshift_landing, 700]
 ランディングページに表示されるプロジェクトは、今日実行するラボによって異なります。`Service Mesh and Identity` を開発する場合は、上記のようにあらかじめ作成されたプロジェクトが表示されます。
 ====
 
-{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}}-cloudnativeapps[Topology View^] を開きます。
+{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] を開きます。
 
 私たちの生産インベントリマイクロサービスは、インベントリデータを格納するために外部データベース (PostgreSQL) を使用します。まず、PostgreSQL の新しいインスタンスを配置します。左側の *{{ USER_ID }}-cloudnativeapps* プロジェクト概要の_Database_ボックスで *+Add* をクリックします :
 
@@ -188,7 +188,7 @@ image::db-postgres.png[db, 700]
 
 image::db-postgres-inventory-values.png[db, 700]
 
-これでデータベースが新しいプロジェクトにデプロイされます。{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}}-cloudnativeapps[Topology View^] をクリックすると表示されます :
+これでデータベースが新しいプロジェクトにデプロイされます。{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] をクリックすると表示されます :
 
 image::inventory-database-deployment.png[inventory_db_deployments, 700]
 
@@ -265,7 +265,7 @@ image::inventory_topology_openurl.png[inventory, 700]
 
 === 2. カタログサービスのデプロイ
 
-_カタログサービス_ は、小売商品の商品と価格を提供します。カタログサービスがどのように動作し、*Spring Boot* Javaランタイム上に構築されているかを簡単に見てみましょう。_CodeReady Workspaces_ の _Explorer. _CodeReady Workspaces_ Web IDEの/projects_に移動して、*catalog-service*ディレクトリを展開します。
+_カタログサービス_ は、小売商品の商品と価格を提供します。カタログサービスがどのように動作し、*Spring Boot* Javaランタイム上に構築されているかを簡単に見てみましょう。_CodeReady Workspaces_ の _Explorer. _CodeReady Workspaces_ Web IDEの/projects_に移動して、 *catalog-service* ディレクトリを展開します。
 
 image::codeready-workspace-catalog-project.png[catalog, 700]
 
@@ -300,7 +300,7 @@ mvn clean package spring-boot:repackage -DskipTests -f $CHE_PROJECTS_ROOT/cloud-
 
 ビルドとデプロイには 1～2 分かかる場合があります。完了するのを待ちましょう。ビルド出力の最後に `BUILD SUCCESS` が表示されるはずです。
 
-私たちの `production` カタログマイクロサービスは、インベントリデータを格納するために外部データベース (PostgreSQL) を使用します。コンソールURL }}}/topology/ns/{{ USER_ID }}}-cloudnativeapps[Topology View^]にアクセスしてください。
+私たちの `production` カタログマイクロサービスは、インベントリデータを格納するために外部データベース (PostgreSQL) を使用します。 {{ CONSOlE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] にアクセスしてください。
 
 プロジェクト概要の _Database_ ボックスの左側にある *+Add* をクリックします :
 
@@ -320,7 +320,7 @@ image::db-postgres.png[db, 700]
 
 image::db-catalog-postgres-fields.png[db, 700]
 
-これでデータベースがカタログプロジェクトにデプロイされます。{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}}-cloudnativeapps[Topology View^] をクリックすると表示されます。
+これでデータベースがカタログプロジェクトにデプロイされます。 {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] をクリックすると表示されます。
 
 OpenShiftでOpenJDKベースのコンテナイメージを使用してアプリケーションのビルド構成を作成します :
 
@@ -348,17 +348,17 @@ oc annotate dc/catalog app.openshift.io/vcs-uri=https://github.com/RedHat-Middle
 oc annotate dc/catalog app.openshift.io/vcs-ref=ocp-4.5 --overwrite
 ----
 
-最後に、実際にロールアウトが完了していることを確認します。カタログは {{console_url }}/topology/ns/{{{user_id }}}-cloudnativeapps[Topology View^] にアクセスして、青い丸が表示されていることを確認してください!
+最後に、実際にロールアウトが完了していることを確認します。カタログは {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] にアクセスして、青い丸が表示されていることを確認してください!
 
 image::inventory-catalog-topology.png[catalog, 700]
 
-そして、http://catalog-{{{ USER_ID }}}-cloudnativeapps.{{ ROUTE_SUBDOMAIN}}}[Catalog Web frontend^] にアクセスして、期待される在庫量を取得していることを確認してください（not `-1`）:
+そして、 http://catalog-{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN }}[Catalog Web frontend^] にアクセスして、期待される在庫量を取得していることを確認してください（not `-1`）:
 
 image::catalog.png[catalog, 700]
 
 これで `Catalog` サービスが OpenShift にデプロイされました。OpenShift Console のプロジェクトステータスでも、カタログ、カタログデータベース、インベントリ、インベントリデータベースの4つのポッドが稼働しているのが確認できます。
 
-=== 3. Developing and Deploying Shopping Cart Service
+=== 3. ショッピングカートサービスの開発・展開
 
 これまでに、Coolstore アプリケーションに必要な要素のいくつかを配備しました。しかし、カートのないオンライン・ショップでは、チェックアウトの経験がありません。このセクションでは、ショッピングカートを実装します。マイクロサービスの世界では、これを *cartサービス* と呼び、Javaアーティファクト/レポを *cartサービス* と呼びます。
 
@@ -381,7 +381,7 @@ oc new-app jboss/infinispan-server:10.0.0.Beta3 --name=datagrid-service
 
 これにより、ショッピングカートを格納するためのデータグリッドサーバのインスタンスが1つ作成されます。
 
-{{console_url }}/topology/ns/{{user_id }}}-cloudnativeapps[トポロジービュー^] をクリックすると表示されます。
+{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[トポロジービュー^] をクリックすると表示されます。
 
 これでキャッシュサービス、別名データグリッドサービスがデプロイされました。私たちは、カート内のすべてのものがこの高速なキャッシュに保存されていることを確認したいと思っています。これは、ブラックフライデーに毎秒数百万人のユーザーがいるときに役立ちます。
 
@@ -605,7 +605,7 @@ At the `// TODO ADD getCart method` marker, add this method:
 他にも *//TODO* マーカーやコメントアウトしたコードは後ほど使用します。今のところ、それらは放っておいてください。
 ====
 
-Quarkus では、まともなデフォルト設定とユーザーが提供する設定に基づいて OpenShift リソースを自動的に生成する機能も提供しています。OpenShift 拡張は、実際には [kubernetes](https://quarkus.io/guides/deploying-to-kubernetes) と [container-image-s2i](https://quarkus.io/guides/container-image#s2i) の拡張をデフォルトでまとめたラッパー拡張であり、ユーザーが OpenShift 上で Quarkus を使い始めやすいようにしています。
+Quarkus では、まともなデフォルト設定とユーザーが提供する設定に基づいて OpenShift リソースを自動的に生成する機能も提供しています。OpenShift 拡張は、実際には https://quarkus.io/guides/deploying-to-kubernetes[kubernetes] と https://quarkus.io/guides/container-image#s2i[container-image-s2i] の拡張をデフォルトでまとめたラッパー拡張であり、ユーザーが OpenShift 上で Quarkus を使い始めやすいようにしています。
 
 CodeReady Workspaces Terminal 経由で _openshift_ 拡張機能を追加します :
 
@@ -667,7 +667,7 @@ oc annotate dc/cart app.openshift.io/connects-to=catalog,datagrid-service --over
 oc annotate dc/cart app.openshift.io/vcs-ref=ocp-4.5 --overwrite
 ----
 
-最後に、実際にロールアウトが完了していることを確認します。カタログは {{console_url }}/topology/ns/{{{user_id }}}-cloudnativeapps[Topology View^] にアクセスして、青い丸が表示されていることを確認してください!
+最後に、実際にロールアウトが完了していることを確認します。カタログは {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] にアクセスして、青い丸が表示されていることを確認してください!
 
 image::cart-topology.png[catalog, 700]
 
@@ -803,7 +803,7 @@ Next, add this code below the `// TODO: Add to create a Document based order her
 
 実装はとても簡単で、*JAX-RS アノテーション* を使用してエンドポイントを定義し、_OrderService_ を使用して新しい注文をリストアップ/追加するだけです。
 
-設定する主なプロパティは*MongoDB*にアクセスするためのURLで、ほとんどすべての設定は接続URIに含めることができます。というわけで, https://docs.mongodb.com/manual/reference/connection-string/[MongoDB documentation^] で詳細を確認することができます。
+設定する主なプロパティは*MongoDB*にアクセスするためのURLで、ほとんどすべての設定は接続URIに含めることができます。というわけで、 https://docs.mongodb.com/manual/reference/connection-string/[MongoDB documentation^] で詳細を確認することができます。
 
 `src/main/resources/` で `application.properties` を開き、`# TODO: Add for MongoDB configuration` マーカーに以下の設定を追加します :
 
@@ -942,11 +942,11 @@ oc annotate dc/order app.openshift.io/connects-to=order-database --overwrite && 
 oc annotate dc/order app.openshift.io/vcs-ref=ocp-4.5 --overwrite
 ----
 
-最後に、実際にロールアウトが完了していることを確認します。オーダーは {{console_url }}/topology/ns/{{user_id }}}-cloudnativeapps[Topology View^] にアクセスしてください。青い丸が表示されていることを確認してください!
+最後に、実際にロールアウトが完了していることを確認します。オーダーは {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] にアクセスしてください。青い丸が表示されていることを確認してください!
 
 image::order-topology.png[order, 700]
 
-そして、 http://order-{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN}}/api/orders[Orders^] にアクセスします。まだショッピングアイテムを追加していないので、空の結果が表示されます :
+そして、 http://order-{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN }}/api/orders[Orders^] にアクセスします。まだショッピングアイテムを追加していないので、空の結果が表示されます :
 
 [source,sh]
 ----
@@ -957,7 +957,7 @@ image::order-topology.png[order, 700]
 
 [source,sh,role="copypaste"]
 ----
-curl -s http://order-{{USER_ID}}-cloudnativeapps.{{ROUTE_SUBDOMAIN}}/api/orders | jq
+curl -s http://order-{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN }}/api/orders | jq
 ----
 
 空の配列 `[]` を返します。
@@ -997,11 +997,11 @@ oc annotate dc/coolstore-ui app.openshift.io/vcs-uri=https://github.com/RedHat-M
 oc annotate dc/coolstore-ui app.openshift.io/vcs-ref=ocp-4.5 --overwrite
 ----
 
-{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}}-cloudnativeapps[Topology View^] に戻って、デプロイが完了していることを確認します(紺色の丸) :
+{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] に戻って、デプロイが完了していることを確認します(紺色の丸) :
 
 image::coolstore-ui_topology.png[coolstore-ui, 700]
 
-そして、http://coolstore-ui-{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN}}}[Red Hat Cool Store^] にアクセスして、期待されている製品や在庫を確保します。
+そして、 http://coolstore-ui-{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN }}[Red Hat Cool Store^] にアクセスして、期待されている製品や在庫を確保します。
 
 image::web-ui-landing.png[coolstore-ui, 700]
 
@@ -1013,4 +1013,4 @@ image::web-ui-landing.png[coolstore-ui, 700]
 
 OpenShift クラスタ上に複数のデータソースを持つ Cloud Native アプリケーションを展開するために、Quarkus は複数のデータソースを接続し、PostgreSQL や MongoDB などのデータソースへの参照をコードで取得する簡単な方法を提供しています。
 
-最終的には、ショッピングカートサービスを *Red Hat Data Grid* と統合することで、エンドユーザー(顧客)の満足度を高めることで、ショッピングカートサービスの _トランザクションパフォーマンス_ を最適化しました。たった一人のユーザー(あなた)だけではわからないかもしれませんが、規模が大きくなれば、これらのコンポーネントによってリライする能力とビジネスパフォーマンスを確保することができます。*おめでとうございます！＊
+最終的には、ショッピングカートサービスを *Red Hat Data Grid* と統合することで、エンドユーザー(顧客)の満足度を高めることで、ショッピングカートサービスの _トランザクションパフォーマンス_ を最適化しました。たった一人のユーザー(あなた)だけではわからないかもしれませんが、規模が大きくなれば、これらのコンポーネントによってリライする能力とビジネスパフォーマンスを確保することができます。*おめでとうございます！*

@@ -34,12 +34,13 @@ image::quarkus-logo.png[quarkus-logo, 900]
 
 何年もの間、クライアント・サーバ・アーキテクチャは、アプリケーションを構築するための事実上の標準でした。しかし、大きな変化が起こりました。1つのモデルがすべての時代を支配していた時代は終わりました。新しい範囲のアプリケーションとアーキテクチャのスタイルが登場し、コードの書き方やアプリケーションの展開と実行の仕方に影響を与えています。HTTP マイクロサービス、リアクティブアプリケーション、メッセージ駆動型マイクロサービス、サーバーレスは、現在のシステムの中心的な役割を果たしています。
 
-https://Quarkus.io/[Quarkus] Cloud Native 、マイクロサービス、サーバーレスJavaアプリケーションを構築するための4つの大きなメリットを提供しています :
+https://Quarkus.io/[Quarkus] oc get dc/guides-m4 -o yaml 
+、Cloud Native 、マイクロサービス、サーバーレスJavaアプリケーションを構築するための4つの大きなメリットを提供しています :
 
 * _開発者の喜び_ - 統一された設定による開発者の喜びを最適化するための凝集したプラットフォーム、瞬時にライブリロードが可能なゼロコンフィグレーション、一般的な使用法のための 80% の合理化されたコードと柔軟な 20% のコード、そして手間のかからないネイティブ実行ファイル生成を提供します。
 * _インペラティブとリアクティブの統合_ - 同一アプリケーション内で Reactive と imperative の両方の開発のために EventBus または Vertx コンテキストを注入します。
 * _Functions as a Service とサーバーレス_ - 高速な起動と低いメモリ使用率。Quarkus を使用すると、プログラミング言語を変更することなく、この新しい世界を受け入れることができます。
-* _ベストオブブリードなフレームワークとスタンダード_ - CodeReady Workspaces Vert.x、Hibernate、RESTEasy、Apache Camel、CodeReady Workspaces MicroProfile、Netty、Kubernetes、OpenShift、Jaeger、Prometheus、Apacke Kafka、Infinispanなど。
+* _ベストオブブリードなフレームワークとスタンダード_ - CodeReady Workspaces、Vert.x、Hibernate、RESTEasy、Apache Camel、MicroProfile、Netty、Kubernetes、OpenShift、Jaeger、Prometheus、Apacke Kafka、Infinispanなど。
 
 *Red Hat* Quarkusのサポートと保守が完全にサポートされた https://access.redhat.com/products/quarkus[Red Hat Build of Quarkus(RHBQ)^] を提供しています。このワークショップでは、Quarkus を使用して Kubernetes ネイティブのマイクロサービスを開発し、OpenShift にデプロイします。Quarkus は、 https://www.redhat.com/en/products/runtimes[Red Hat Runtimes^] に含まれるランタイムの一つです。 https://access.redhat.com/documentation/en-us/red_hat_build_of_quarkus[RHBQの詳細はこちら^]。
 
@@ -52,9 +53,9 @@ https://Quarkus.io/[Quarkus] Cloud Native 、マイクロサービス、サー�
 
 ==== 本日最初のモジュールの場合
 
-使用するのは、https://www.eclipse.org/che/[Eclipe Che^] をベースにしたオンライン IDE である Red Hat CodeReady Workspaces を使用します。*ファイルへの変更は数秒ごとに自動保存されます* ので、明示的に変更を保存する必要はありません。
+使用するのは、 https://www.eclipse.org/che/[Eclipe Che^] をベースにしたオンライン IDE である Red Hat CodeReady Workspaces を使用します。*ファイルへの変更は数秒ごとに自動保存されます* ので、明示的に変更を保存する必要はありません。
 
-開始するには、{{ ECLIPSE_CHE_URL }}[CodeReady Workspacesインスタンスにアクセス^] し、割り当てられたユーザー名とパスワード(例: `{{ USER_ID }}/{{ CHE_USER_PASSWORD }}` )を使用してログインします :
+開始するには、 {{ ECLIPSE_CHE_URL }}[CodeReady Workspacesインスタンスにアクセス^] し、割り当てられたユーザー名とパスワード(例: `{{ USER_ID }}/{{ CHE_USER_PASSWORD }}` )を使用してログインします :
 
 image::che-login.png[cdw, 700]
 
@@ -100,7 +101,7 @@ image::crw-clone-repo.png[crw,900]
 
 image::crw-clone-explorer.png[crw,900]
 
-==== IMPORTANT: Check out proper Git branch
+==== 重要: 適切な Git ブランチをチェックアウト
 
 プロジェクトファイルの正しいバージョンを使用していることを確認するには、CodeReadyターミナルでこのコマンドを実行してください :
 
@@ -109,7 +110,7 @@ image::crw-clone-explorer.png[crw,900]
 cd $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs && git checkout ocp-4.5
 ----
 
-=== Remove other projects
+=== 他プロジェクトの削除
 
 今日他のモジュール(例えば `cloud-native-workshop-v2m1-lab` )を完了した場合は、エクスプローラでプロジェクト名を右クリックして *Delete* を選択し、警告を受け入れてワークスペースからそれらを削除してください。このラボのためにインポートした新しいプロジェクトを削除しないように注意してください。
 

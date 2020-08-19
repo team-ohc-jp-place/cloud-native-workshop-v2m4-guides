@@ -15,7 +15,7 @@ Cloud Native アプリケーション・アーキテクチャでは、現在、�
 
 === このラボのゴール
 
-目標は、*Red Hat Runtimes* 上でサーバーレスアプリケーションを開発し、https://www.openshift.com/learn/topics/serverless[OpenShift Serverless^] を使用して *OpenShift 4* 上にデプロイし、Cloud Native で継続的なインテグレーションとデリバリ(CI/CD)パイプラインを使用することです。このラボでは、Knative Serving、Istio、Tekelton Pipelines を使用して、Quarkus ベースのサーバーレスアプリケーションとして Payment Service をデプロイします。このラボの後には、次のようなものを完成させる必要があります。
+目標は、*Red Hat Runtimes* 上でサーバーレスアプリケーションを開発し、 https://www.openshift.com/learn/topics/serverless[OpenShift Serverless^] を使用して *OpenShift 4* 上にデプロイし、Cloud Native で継続的なインテグレーションとデリバリ(CI/CD)パイプラインを使用することです。このラボでは、Knative Serving、Istio、Tekelton Pipelines を使用して、Quarkus ベースのサーバーレスアプリケーションとして Payment Service をデプロイします。このラボの後には、次のようなものを完成させる必要があります。
 
 image::lab3-goal.png[goal, 700]
 
@@ -31,13 +31,13 @@ image::knative-serving-diagram.png[knative, 800]
 
 image::knative-eventing-diagram.png[knative, 800]
 
-OpenShift Serverless アプリケーションは、OpenShift https://www.openshift.com/learn/topics/pipelines[Pipelines^]、https://www.openshift.com/learn/topics/service-mesh[Service Mesh^] 、Monitoring、 https://github.com/operator-framework/operator-metering[Metering^] などの他の OpenShift サービスと統合することができ、完全なサーバーレスアプリケーションの開発とデプロイメントの経験を提供します。
+OpenShift Serverless アプリケーションは、OpenShift https://www.openshift.com/learn/topics/pipelines[Pipelines^]、 https://www.openshift.com/learn/topics/service-mesh[Service Mesh^] 、Monitoring、 https://github.com/operator-framework/operator-metering[Metering^] などの他の OpenShift サービスと統合することができ、完全なサーバーレスアプリケーションの開発とデプロイメントの経験を提供します。
 
 === 1. ネイティブ実行可能なファイルのビルド
 
 それでは、例の Quarkus アプリケーション用のネイティブ実行ファイルを作成してみましょう。これにより、アプリケーションの起動時間が改善され、最小限のディスクとメモリのフットプリントが生成されます。実行ファイルには、`JVM` (アプリケーションを実行するのに十分な大きさに縮小されています) とアプリケーションを含む、アプリケーションを実行するためのすべてが含まれています。これは https://graalvm.org/[GraalVM^] を使用して達成されます。
 
-`GraalVM`は、JavaScript、Python、Ruby、R、Java、Scala、Groovy、Kotlin、Clojure などの JVM ベースの言語、C や C++ などの LLVM ベースの言語で書かれたアプリケーションをコンパイルして実行するための普遍的な仮想マシンです。先行コンパイル、積極的なデッドコードの排除、ネイティブバイナリとしての最適なパッケージングが含まれており、多くの起動ロジックをビルド時に移動させることで、起動時間とメモリリソース要件を大幅に削減します。
+`GraalVM` は、JavaScript、Python、Ruby、R、Java、Scala、Groovy、Kotlin、Clojure などの JVM ベースの言語、C や C++ などの LLVM ベースの言語で書かれたアプリケーションをコンパイルして実行するための普遍的な仮想マシンです。先行コンパイル、積極的なデッドコードの排除、ネイティブバイナリとしての最適なパッケージングが含まれており、多くの起動ロジックをビルド時に移動させることで、起動時間とメモリリソース要件を大幅に削減します。
 
 image::native-image-process.png[serverless, 700]
 
@@ -188,7 +188,7 @@ _Knative Eventing_ は、Cloud Native 開発における共通のニーズに応
 
 * サービスは開発中に緩く結合され、独立してデプロイされます。
 * プロデューサーは、コンシューマーがリッスンする前にイベントを生成することができ、コンシューマーはまだ生成されていないイベントやイベントのクラスに興味を示すことができます。
-* Services can be connected to create new applications without modifying producer or consumer, and with the ability to select a specific subset of events from a particular producer.
+* プロデューサやコンシューマを変更することなく、特定のプロデューサからイベントの特定のサブセットを選択する機能を備えたサービスを接続して、新しいアプリケーションを作成することができます。
 
 プロデューサやコンシューマを変更することなく、特定のプロデューサからイベントの特定のサブセットを選択する機能を備えたサービスを接続して、新しいアプリケーションを作成することができます。
 
@@ -281,7 +281,7 @@ image::add-icon.png[serverless, 700]
 
 image::deploy-payment-image.png[serverless, 900]
 
-サービスの作成に成功すると、{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}}-cloudnativeapps[Topology View] に *Knative Service* (_KSVC_)と *Revision* (_REV_)が表示されるはずです :
+サービスの作成に成功すると、{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View] に *Knative Service* (_KSVC_)と *Revision* (_REV_)が表示されるはずです :
 
 [NOTE]
 ====
@@ -292,7 +292,7 @@ image::deploy-payment-image.png[serverless, 900]
 
 image::kservice-up.png[serverless, 700]
 
-Add this label and click on *Save*:
+このラベルを追加し、*Save*をクリックします :
 
 [source,sh,role="copypaste"]
 ----
@@ -619,14 +619,14 @@ s2i-java-8         27 seconds ago
 
 パイプラインは、実行されるべきタスクの数と、それらの入力と出力を介した相互作用の方法を定義します。
 
-このラボでは、PetClinic アプリケーションのソースコードを GitHub から取得し、https://docs.openshift.com/container-platform/latest/builds/understanding-image-builds.html#build-strategy-s2i_understanding-image-builds[Source-to-Image(S2I)^] を使って OpenShift 上にビルドしてデプロイするパイプラインを作成します。
+このラボでは、PetClinic アプリケーションのソースコードを GitHub から取得し、 https://docs.openshift.com/container-platform/latest/builds/understanding-image-builds.html#build-strategy-s2i_understanding-image-builds[Source-to-Image(S2I)^] を使って OpenShift 上にビルドしてデプロイするパイプラインを作成します。
 
 image::pipeline-diagram.png[serverless, 700]
 
 このパイプラインは以下のことを実行します:
 
 * Git リポジトリ (_app-git_ リソース) からアプリケーションのソースコードをクローンします。
-* アプリケーション用の Dockerfile を生成する s2i-java-8 タスクを使用してコンテナイメージをビルドし、https://buildah.io/[Buildah^] を使用してイメージをビルドします。
+* アプリケーション用の Dockerfile を生成する s2i-java-8 タスクを使用してコンテナイメージをビルドし、 https://buildah.io/[Buildah^] を使用してイメージをビルドします。
 * アプリケーションイメージはイメージレジストリにプッシュされます (_app-image_ リソース)
 * 新しいアプリケーションイメージは、_openshift-cli_ を使用して OpenShift 上にデプロイされます。
 
@@ -637,7 +637,7 @@ PetClinic の Git リポジトリとそのイメージがレジストリにな�
 
 パイプラインは、*resources* として生成される Git ソースリポジトリやイメージの詳細を抽象化します。パイプラインをトリガーする際には、パイプラインの実行中に使用する Git リポジトリやイメージのレジストリを指定することができます。我慢してください! これについては次のセクションで少し説明します。
 
-_tasks_の実行順序は、*inputs* と *outputs* で定義されたタスク間の依存関係と、*runAfter* で定義された明示的な順序によって決定されます。
+_tasks_ の実行順序は、*inputs* と *outputs* で定義されたタスク間の依存関係と、*runAfter* で定義された明示的な順序によって決定されます。
 
 OpenShift コンソールで右上の `+` ボタンをクリックし、以下の YAML を貼り付けて *Create* をクリックします :
 
@@ -734,7 +734,7 @@ petclinic-git     git     url: https://github.com/spring-projects/spring-petclin
 petclinic-image   image   url: image-registry.openshift-image-registry.svc:5000/{{ USER_ID }}-cloudnative-pipeline/spring-petclinic
 ----
 
-*PipelineRun* は、パイプラインを起動して、この特定の呼び出しに使用するべき Git やイメージリソースに結びつける方法です。では、{{{ CONSOLE_URL }}/k8s/ns/{{ USER_ID }}}-cloudnative-pipeline/tekton.dev~v1alpha1~Pipeline[OpenShift Pipelines^] に移動して、*Start* をクリックしてみましょう :
+*PipelineRun* は、パイプラインを起動して、この特定の呼び出しに使用するべき Git やイメージリソースに結びつける方法です。では、 {{{ CONSOLE_URL }}/k8s/ns/{{ USER_ID }}}-cloudnative-pipeline/tekton.dev~v1alpha1~Pipeline[OpenShift Pipelines^] に移動して、*Start* をクリックしてみましょう :
 
 image::pipeline-start.png[serverless, 800]
 
@@ -746,7 +746,7 @@ image::pipeline-start-popup.png[serverless, 700]
 
 image::pipeline-complete.png[serverless, 800]
 
-ビルドが完了したら、{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}/cloudnative-pipeline[Topology View^] 上で、*Open URL* をクリックします。PetClinic イメージが正常に構築され、デプロイされたことが確認できるはずです。
+ビルドが完了したら、 {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}/cloudnative-pipeline[Topology View^] 上で、*Open URL* をクリックします。PetClinic イメージが正常に構築され、デプロイされたことが確認できるはずです。
 
 image::petclinic-openurl.png[serverless, 800]
 

@@ -13,7 +13,7 @@
 
 === このラボのゴール
 
-目標は、*Red Hat Runtimes*上で高度なクラウドネイティブアプリケーションを開発し、分散メッシング機能のための*AMQ Streams*を含む*OpenShift 4*上にデプロイすることです。このラボの後には、次のようなものを完成させる必要があります :
+目標は、*Red Hat Runtimes* 上で高度なクラウドネイティブアプリケーションを開発し、分散メッシング機能のための *AMQ Streams* を含む *OpenShift 4* 上にデプロイすることです。このラボの後には、次のようなものを完成させる必要があります :
 
 image::lab2-goal.png[goal, 700]
 
@@ -350,7 +350,7 @@ mvn quarkus:add-extension -Dextensions="kafka" -f $CHE_PROJECTS_ROOT/cloud-nativ
 
 これにより、カートサービスアプリに Kafka 拡張機能と API が追加されます。
 
-支払いサービスと同様に、このコードを `// TODO: ワークスペースの `cart-service` サブディレクトリの `com.redhat.cloudnative` パッケージ内の `CartResource` クラス内の `ここに注文メッセージング設定の注釈を追加する` マーカーに追加します :
+支払いサービスと同様に、このコードを `com.redhat.cloudnative` パッケージ内の `CartResource` クラス内の `// TODO: Add annotation of orders messaging configuration here` マーカーに追加します :
 
 [source,java,role="copypaste"]
 ----
@@ -597,11 +597,11 @@ image::input-cc-info.png[serverless, 1000]
 image::payment-processing.png[serverless, 1000]
 
 [arabic, start=5]
-. After a few moments, reload the *All Orders* page to confirm that the Payment Status changed to `COMPLETED` or `FAILED`.
+. しばらくしてから、*All Orders* ページをリロードして、支払いステータスが `COMPLETED` または `FAILED` に変更されたことを確認してください。
 
 [NOTE]
 ====
-しばらくしてから、*All Orders* ページをリロードして、支払いステータスが `COMPLETED` または `FAILED` に変更されたことを確認してください。
+ステータスが Processing のままの場合は、注文サービスが受信した Kafka メッセージを処理して MongoDB に保存しています。あと数回ページをリロードしてください。
 ====
 
 image::payment-completedorfailed.png[serverless, 1000]
