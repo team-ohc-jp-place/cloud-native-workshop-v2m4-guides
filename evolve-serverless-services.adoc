@@ -262,7 +262,7 @@ oc start-build payment --from-file=$CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4
 
 このステップでは、ネイティブバイナリとベース OS イメージを組み合わせ、新しいコンテナイメージを作成し、内部イメージレジストリにプッシュします。
 
-{{CONSOLE_URL }}/add/ns/{{USER_ID }}}-cloudnativeapps[+Add] に移動して、_Knative Service_ を作成し、*Container Image* をクリックします。:
+{{ CONSOLE_URL }}/add/ns/{{ USER_ID }}}-cloudnativeapps[+Add] に移動して、_Knative Service_ を作成し、*Container Image* をクリックします。:
 
 image::add-icon.png[serverless, 700]
 
@@ -322,7 +322,7 @@ image::payment-serving-magic.png[serverless, 700]
 
 それでは、*KafkaSource* を作成して *Knative Eventing* を有効にしてみましょう。このラボでは、_Knative Eventing_ はすでに OpenShift 4 クラスタの _Knative Eventing Operator_ を介してインストールされています。
 
-{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}}-cloudnativeapps[Topology View^] に戻って、右上の `+` アイコンをクリックします。
+{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] に戻って、右上の `+` アイコンをクリックします。
 
 image::plus-icon.png[serverless, 500]
 
@@ -383,7 +383,7 @@ image::checkout-serverless.png[serverless, 1000]
 image::input-cc-info-serverless.png[serverless, 1000]
 
 [arabic, start=4]
-. _Kafka Event_ がどのようにして _Knative Eventing_ を有効にしているのか確認してみましょう。{{CONSOLE_URL }}/topology/ns/{{ USER_ID }}}-cloudnativeapps[Topology View^] に戻って、*支払いサービス*が自動的に起動しているかどうか確認してください。
+. _Kafka Event_ がどのようにして _Knative Eventing_ を有効にしているのか確認してみましょう。 {{CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] に戻って、*支払いサービス*が自動的に起動しているかどうか確認してください。
 
 image::payment-serving-magic.png[serverless, 500]
 

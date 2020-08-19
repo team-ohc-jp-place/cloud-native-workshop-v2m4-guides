@@ -5,7 +5,7 @@
 
 さらに、アプリケーションは、デジタル経済の中で繁栄するために、ハイブリッドおよびマルチクラウドアーキテクチャを必要としています。統一された Cloud Native のアプリケーション環境は、完全にまとまった開発プラットフォームで生産性の向上とイノベーションを可能にするため、開発者にとって不可欠なものとなっています。アプリケーション環境は、急速な変化とスケーラビリティ、アジリティ、信頼性に対する高い要求のため、運用にとっても同様に重要です。
 
-このモジュールでは、DevOps / Cloud Native プラットフォーム上でコンテナ化されたアプリケーションをスケールとスピードで実行するために、どのようなクラウドネイティブアーキテクチャを設計する必要があるのかを学びます。その後、 https://www.redhat.com/en/technologies/cloud-computing/openshift/application-runtimes[Red Hat Runtimes] 、 https://developers.redhat.com/products/codeready-workspaces/overview[Red Hat CodeReady Workspaces^]、 https://www.redhat.com/en/technologies/cloud-computing/openshift[Red Hat OpenShift Container Platform] を使用して、高パフォーマンスキャッシュ、イベントドリブン/リアクティブ、サーバーレスなどのアーキテクチャパターンに基づいたクラウドネイティブアプリケーションの開発も行います。
+このモジュールでは、DevOps / Cloud Native プラットフォーム上でコンテナ化されたアプリケーションをスケールとスピードで実行するために、どのような Cloud Native アーキテクチャを設計する必要があるのかを学びます。その後、 https://www.redhat.com/en/technologies/cloud-computing/openshift/application-runtimes[Red Hat Runtimes] 、 https://developers.redhat.com/products/codeready-workspaces/overview[Red Hat CodeReady Workspaces^]、 https://www.redhat.com/en/technologies/cloud-computing/openshift[Red Hat OpenShift Container Platform] を使用して、高パフォーマンスキャッシュ、イベントドリブン/リアクティブ、サーバーレスなどのアーキテクチャパターンに基づいたクラウドネイティブアプリケーションの開発も行います。
 
 === Cloud Native アプリケーションアーキテクチャの能力とは?
 
@@ -34,8 +34,7 @@ image::quarkus-logo.png[quarkus-logo, 900]
 
 何年もの間、クライアント・サーバ・アーキテクチャは、アプリケーションを構築するための事実上の標準でした。しかし、大きな変化が起こりました。1つのモデルがすべての時代を支配していた時代は終わりました。新しい範囲のアプリケーションとアーキテクチャのスタイルが登場し、コードの書き方やアプリケーションの展開と実行の仕方に影響を与えています。HTTP マイクロサービス、リアクティブアプリケーション、メッセージ駆動型マイクロサービス、サーバーレスは、現在のシステムの中心的な役割を果たしています。
 
-https://Quarkus.io/[Quarkus] oc get dc/guides-m4 -o yaml 
-、Cloud Native 、マイクロサービス、サーバーレスJavaアプリケーションを構築するための4つの大きなメリットを提供しています :
+https://Quarkus.io/[Quarkus] 、Cloud Native 、マイクロサービス、サーバーレスJavaアプリケーションを構築するための4つの大きなメリットを提供しています :
 
 * _開発者の喜び_ - 統一された設定による開発者の喜びを最適化するための凝集したプラットフォーム、瞬時にライブリロードが可能なゼロコンフィグレーション、一般的な使用法のための 80% の合理化されたコードと柔軟な 20% のコード、そして手間のかからないネイティブ実行ファイル生成を提供します。
 * _インペラティブとリアクティブの統合_ - 同一アプリケーション内で Reactive と imperative の両方の開発のために EventBus または Vertx コンテキストを注入します。
@@ -59,7 +58,7 @@ https://Quarkus.io/[Quarkus] oc get dc/guides-m4 -o yaml
 
 image::che-login.png[cdw, 700]
 
-ログインすると、個人のダッシュボードが表示されます。以下のように、左側にあるあらかじめ作成されたワークスペースの名前をクリックします（割り当てられた番号によって名前が異なります）。また、中央のワークスペースの名前をクリックし、画面右上の _Open_ と書かれた緑色の {{ USER_ID}}-namespace をクリックします。
+ログインすると、個人のダッシュボードが表示されます。以下のように、左側にあるあらかじめ作成されたワークスペースの名前をクリックします（割り当てられた番号によって名前が異なります）。また、中央のワークスペースの名前をクリックし、画面右上の _Open_ と書かれた緑色の {{ USER_ID }}-namespace をクリックします。
 
 image::che-landing.png[cdw, 700]
 
