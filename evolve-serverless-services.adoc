@@ -155,7 +155,7 @@ hello
 
 実行中の Quarkus を kbd:[CTRL+C] で必ず終了させてください。
 
-=== 2. 古い支払いサービスの削除
+=== 2. 古い payment-service の削除
 
 _OpenShift Serverless_ は Knative Serving をベースに構築されており、サーバーレスアプリケーションと機能のデプロイと提供をサポートします。サーバレスアプリケーションと機能のデプロイと提供をサポートするために、_Serverless_は簡単に始められ、高度なシナリオをサポートするために拡張できます。
 
@@ -192,7 +192,7 @@ _Knative Eventing_ は、Cloud Native 開発における共通のニーズに応
 
 プロデューサやコンシューマを変更することなく、特定のプロデューサからイベントの特定のサブセットを選択する機能を備えたサービスを接続して、新しいアプリケーションを作成することができます。
 
-Knative の直接の統合コードを削除します。現在、私たちの支払いサービスは、Kafka に直接バインドしてイベントをリッスンしています。Knative のイベント統合ができたので、このコードは不要になりました。ペイメントサービス `/src/main/java/com/redhat/cloudnative` ディレクトリにある `PaymentResource.java` ファイルを開きます。
+Knative の直接の統合コードを削除します。現在、私たちの支払いサービスは、Kafka に直接バインドしてイベントをリッスンしています。Knative のイベント統合ができたので、このコードは不要になりました。payment-service `/src/main/java/com/redhat/cloudnative` ディレクトリにある `PaymentResource.java` ファイルを開きます。
 
 kbd:[CTRL+/] (Mac OS の場合は kbd:[Command+/] ) で `onMessage()` メソッドをコメントアウトしてください :
 
@@ -281,7 +281,7 @@ image::add-icon.png[serverless, 700]
 
 image::deploy-payment-image.png[serverless, 900]
 
-サービスの作成に成功すると、{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View] に *Knative Service* (_KSVC_)と *Revision* (_REV_)が表示されるはずです :
+サービスの作成に成功すると、 {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View] に *Knative Service* (_KSVC_)と *Revision* (_REV_)が表示されるはずです :
 
 [NOTE]
 ====
@@ -314,7 +314,7 @@ image::kservice-up-quarkus.png[serverless, 700]
 
 image::kservice-down.png[serverless, 700]
 
-このエンドポイントにトラフィックを送信すると、アプリをスケールアップするためのオートスケーラーがトリガーされます。 http://payment.{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN }}[Open URL^] をクリックして、支払いサービスを _trigger_ します。これにより、いくつかのダミーデータが `payment` サービスに送信されますが、より重要なのは、knative が自動的にポッドを再びスピンアップさせ、30秒後にシャットダウンするようにトリガーしたことです。
+このエンドポイントにトラフィックを送信すると、アプリをスケールアップするためのオートスケーラーがトリガーされます。 http://payment-{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN }}[Open URL^] をクリックして、支払いサービスを _trigger_ します。これにより、いくつかのダミーデータが `payment` サービスに送信されますが、より重要なのは、knative が自動的にポッドを再びスピンアップさせ、30秒後にシャットダウンするようにトリガーしたことです。
 
 image::payment-serving-magic.png[serverless, 700]
 
@@ -359,7 +359,7 @@ Coolstore Web UI経由で _Serverless_ の機能で決済サービスが正常�
 
 === 4. End to End Functional Testing
 
-始める前に、{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] で、_payment service_ が再び_ゼロ_にスケールダウンされているかどうかを確認する必要があります :
+始める前に、 {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] で、_payment service_ が再び_ゼロ_にスケールダウンされているかどうかを確認する必要があります :
 
 image::payment-down-again.png[serverless, 700]
 

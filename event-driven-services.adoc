@@ -316,7 +316,7 @@ curl -i -H 'Content-Type: application/json' -X POST -d'{"orderId": "12321","tota
 
 これは5秒で戻ってきます(当社の偽クレジットカード処理時間)。
 
-支払いサービスはこの _order_ を受信し、Kafka _payment_ トピックに _payment_ の結果を生成します。`Pod Terminal`では以下のような結果が得られます :
+支払いサービスはこの _order_ を受信し、Kafka _payment_ トピックに _payment_ の結果を生成します。`Pod Terminal` では以下のような結果が得られます :
 
 [source,shell]
 ----
@@ -330,9 +330,9 @@ curl -i -H 'Content-Type: application/json' -X POST -d'{"orderId": "12321","tota
 
 image::kafka-console-consumer-stop.png[payment, 900]
 
-=== 3. カートサービスに Kafka クライアントを追加
+=== 3. cart-service に Kafka クライアントを追加
 
-これまでに、小売店のショッピングデータで動作するマイクロサービスをいくつか追加しました。例えば、一度ユーザーがチェックアウトすると、注文サービスや支払いサービスのような他のサービスがこの情報を必要とし、さらに処理をしたいと考えています。そこで、カートサービスを Kafka と統合して、買い物客がチェックアウトしたときに注文メッセージを送信できるようにします。
+これまでに、小売店のショッピングデータで動作するマイクロサービスをいくつか追加しました。例えば、一度ユーザーがチェックアウトすると、注文サービスや支払いサービスのような他のサービスがこの情報を必要とし、さらに処理をしたいと考えています。そこで、cart-service を Kafka と統合して、買い物客がチェックアウトしたときに注文メッセージを送信できるようにします。
 
 Quarkus *Kafka* 拡張機能を使用して Maven の依存関係を追加します :
 
@@ -348,7 +348,7 @@ mvn quarkus:add-extension -Dextensions="kafka" -f $CHE_PROJECTS_ROOT/cloud-nativ
 ✅ Adding extension io.quarkus:quarkus-smallrye-reactive-messaging-kafka
 ----
 
-これにより、カートサービスアプリに Kafka 拡張機能と API が追加されます。
+これにより、cart-service アプリに Kafka 拡張機能と API が追加されます。
 
 支払いサービスと同様に、このコードを `com.redhat.cloudnative` パッケージ内の `CartResource` クラス内の `// TODO: Add annotation of orders messaging configuration here` マーカーに追加します :
 
@@ -440,7 +440,7 @@ oc label dc/cart app.kubernetes.io/part-of=cart --overwrite &&  \
 oc annotate dc/cart app.openshift.io/connects-to=my-cluster,datagrid-service --overwrite
 ----
 
-=== 4. オーダーサービスへ Kafka クライアントの追加
+=== 4. order-service へ Kafka クライアントの追加
 
 *payments* サービスと同様に、*order* サービスは注文をリッスンしますが、支払いは処理しません。この機能をオーダーサービスに追加してみましょう。
 
@@ -567,7 +567,7 @@ Coolstore の GUI テストで `Kafka` メッセージングを使って、す�
 
 === 5. エンドツーエンドの機能テスト
 
-お買い物に行こう。 http://coolstore-ui-{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN}}}[Red Hat Cool Store^] にアクセスします。
+お買い物に行こう。 http://coolstore-ui-{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN }}[Red Hat Cool Store^] にアクセスします。
 
 以下のショッピングシナリオでは、ショッピングカートにいくつかのクールなアイテムを追加します。:
 

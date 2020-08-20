@@ -341,11 +341,11 @@ oc start-build catalog --from-file=$CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4
 [source,sh,role="copypaste"]
 ----
 oc new-app catalog -e JAVA_OPTS_APPEND='-Dspring.profiles.active=openshift' && oc expose service catalog && \
-oc label dc/catalog app.kubernetes.io/part-of=catalog app.openshift.io/runtime=spring --overwrite && \
+oc label deployment/catalog app.kubernetes.io/part-of=catalog app.openshift.io/runtime=spring --overwrite && \
 oc label dc/catalog-database app.kubernetes.io/part-of=catalog app.openshift.io/runtime=postgresql --overwrite && \
-oc annotate dc/catalog app.openshift.io/connects-to=inventory,catalog-database --overwrite && \
-oc annotate dc/catalog app.openshift.io/vcs-uri=https://github.com/RedHat-Middleware-Workshops/cloud-native-workshop-v2m4-labs.git --overwrite && \
-oc annotate dc/catalog app.openshift.io/vcs-ref=ocp-4.5 --overwrite
+oc annotate deployment/catalog app.openshift.io/connects-to=inventory,catalog-database --overwrite && \
+oc annotate deployment/catalog app.openshift.io/vcs-uri=https://github.com/RedHat-Middleware-Workshops/cloud-native-workshop-v2m4-labs.git --overwrite && \
+oc annotate deployment/catalog app.openshift.io/vcs-ref=ocp-4.5 --overwrite
 ----
 
 最後に、実際にロールアウトが完了していることを確認します。カタログは {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] にアクセスして、青い丸が表示されていることを確認してください!
@@ -427,7 +427,7 @@ message Promotion {
 <1> つまり、`ShoppingCart` は `ShoppingCartItem` のリスト (`repeated`) を持っていることになります。
 <2> 各 `ShoppingCartItem` は `Product` を持ちます。
 
-しかし、まだ `Product` を定義していない。このコードを `//TODO ADD Product` マーカーの下に追加する。
+しかし、まだ `Product` を定義していません。このコードを `//TODO ADD Product` マーカーの下に追加します。
 
 [source,java,role="copypaste"]
 ----
@@ -453,7 +453,7 @@ message Product {
 
 実体が私たちのプロトファイルと一致していることに注目してください。残りの部分、またはゲッターとセッターなので、それらにデータを読み書きすることができます。
 
-先に進み、Productクラス用の*Marshaller*を作成してみましょう。これは、キャッシュへの読み書きを正確に行います。
+先に進み、Productクラス用の *Marshaller* を作成してみましょう。これは、キャッシュへの読み書きを正確に行います。
 
 `com.redhat.cloudnative.model` の中に `ProductMarshaller.java` という名前の Java クラスを新規作成し、以下のコードをファイルにコピーする。
 
@@ -662,7 +662,7 @@ oc rollout status -w dc/cart
 [source,sh,role="copypaste"]
 ----
 oc label dc/cart app.kubernetes.io/part-of=cart app.openshift.io/runtime=quarkus --overwrite && \
-oc label dc/datagrid-service app.kubernetes.io/part-of=cart app.openshift.io/runtime=datagrid --overwrite && \
+oc label deployment/datagrid-service app.kubernetes.io/part-of=cart app.openshift.io/runtime=datagrid --overwrite && \
 oc annotate dc/cart app.openshift.io/connects-to=catalog,datagrid-service --overwrite && \
 oc annotate dc/cart app.openshift.io/vcs-ref=ocp-4.5 --overwrite
 ----
@@ -719,7 +719,7 @@ image::order_bean.png[order, 700]
     @Inject MongoClient mongoClient;
 ----
 
-次に、`// TODO: MongoCursor here` マーカーを使って順序リストを作るための while ループを追加します (`list()` メソッド内)。
+次に、list() メソッド内のマーカー `// TODO: Add a while loop to make an order lists using MongoCursor here` に次のコードを追加します。
 
 [source,java,role="copypaste"]
 ----
@@ -743,7 +743,7 @@ image::order_bean.png[order, 700]
         }
 ----
 
-Next, add this code below the `// TODO: Add to create a Document based order here` marker in `add(Order order)` method:
+`add(Order order)` のマーカー `// TODO: Add to create a Document based order here` に次のコードを追加します :
 
 [source,java,role="copypaste"]
 ----
@@ -892,7 +892,7 @@ Bson *Codec* を使うことで、MongoDB クライアントが MongoDB *Documen
     }
 ----
 
-_Quarkus_は、_CodecProvider_を登録してくれます。
+_Quarkus_ は、_CodecProvider_ を登録してくれます。
 
 最後に、データベースから _MongoCollection_ を取得する際には、Document クラスの代わりに Order クラスを直接使用することができます。コーデックは自動的にドキュメントをオーダークラスにマッピングします。
 
@@ -907,7 +907,7 @@ _Quarkus_は、_CodecProvider_を登録してくれます。
     }
 ----
 
-以下の `oc` コマンドを実行して、CodeReady Workspaces Terminal 経由で `MongoDB` を OpenShift にデプロイする :
+以下の `oc` コマンドを実行して、CodeReady Workspaces Terminal 経由で `MongoDB` を OpenShift にデプロイします :
 
 [source,sh,role="copypaste"]
 ----
@@ -937,7 +937,7 @@ oc rollout status -w dc/order
 [source,sh,role="copypaste"]
 ----
 oc label dc/order app.kubernetes.io/part-of=order --overwrite && \
-oc label dc/order-database app.kubernetes.io/part-of=order app.openshift.io/runtime=mongodb --overwrite && \
+oc label deployment/order-database app.kubernetes.io/part-of=order app.openshift.io/runtime=mongodb --overwrite && \
 oc annotate dc/order app.openshift.io/connects-to=order-database --overwrite && \
 oc annotate dc/order app.openshift.io/vcs-ref=ocp-4.5 --overwrite
 ----
@@ -964,7 +964,7 @@ curl -s http://order-{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN }}/api/ord
 
 === 5. WEB-UI サービス のデプロイ
 
-当社の Web UI は、 https://angularjs.org/[AngularJS^]とhttp://patternfly.org/[PatternFly^] をベースにしたフロントエンドを https://access.redhat.com/documentation/en/openshift-container-platform/3.3/paged/using-images/chapter-2-source-to-image-s2i[Node.js] コンテナで実行しています。 https://www.redhat.com/en/products/runtimes[Red Hat Runtimes^]には、クラウドネイティブ開発に使用される他のランタイムとともに *Node.js* のサポートが含まれています。
+当社の Web UI は、 https://angularjs.org/[AngularJS^] と http://patternfly.org/[PatternFly^] をベースにしたフロントエンドを https://access.redhat.com/documentation/en/openshift-container-platform/3.3/paged/using-images/chapter-2-source-to-image-s2i[Node.js] コンテナで実行しています。 https://www.redhat.com/en/products/runtimes[Red Hat Runtimes^] には、クラウドネイティブ開発に使用される他のランタイムとともに *Node.js* のサポートが含まれています。
 
 フロントエンドサービスがどのように動作し、Node.js ランタイム上に構築されているかを簡単に説明しましょう。CodeReady Workspaces の _/projects_ に移動し、`coolstore-ui` ディレクトリを展開します。
 

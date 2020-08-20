@@ -2,7 +2,7 @@ id: "cloudnative"
 name: "The Containers and Cloud-Native Roadshow Dev Track - Module 4"
 
 content:
-  url: https://raw.githubusercontent.com/RedHat-Middleware-Workshops/cloud-native-workshop-v2m4-guides.git/master
+  url: https://raw.githubusercontent.com/RedHat-Middleware-Workshops/cloud-native-workshop-v2m4-guides.git/ocp-4.5-jp
 
 vars:
   ROUTE_SUBDOMAIN:
