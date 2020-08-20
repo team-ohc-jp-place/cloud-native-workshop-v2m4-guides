@@ -150,7 +150,7 @@ mvn quarkus:add-extension -Dextensions="jdbc-postgresql" -f $CHE_PROJECTS_ROOT/c
 ✅ Adding extension io.quarkus:quarkus-jdbc-postgresql
 ----
 
-まず、{{ CONSOLE_URL }}[OpenShift web console^] で新規ブラウザを開きます :
+まず、 {{ CONSOLE_URL }}[OpenShift web console^] で新規ブラウザを開きます :
 
 image::openshift_login.png[openshift_login, 700]
 
@@ -170,7 +170,7 @@ image::openshift_landing.png[openshift_landing, 700]
 
 {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] を開きます。
 
-私たちの生産インベントリマイクロサービスは、インベントリデータを格納するために外部データベース (PostgreSQL) を使用します。まず、PostgreSQL の新しいインスタンスを配置します。左側の *{{ USER_ID }}-cloudnativeapps* プロジェクト概要の_Database_ボックスで *+Add* をクリックします :
+私たちの生産インベントリマイクロサービスは、インベントリデータを格納するために外部データベース (PostgreSQL) を使用します。まず、PostgreSQL の新しいインスタンスを配置します。左側の *{{ USER_ID }}-cloudnativeapps* プロジェクト概要の _Database_ ボックスで *+Add* をクリックします :
 
 image::db.png[db, 700]
 
@@ -188,7 +188,7 @@ image::db-postgres.png[db, 700]
 
 image::db-postgres-inventory-values.png[db, 700]
 
-これでデータベースが新しいプロジェクトにデプロイされます。{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] をクリックすると表示されます :
+これでデータベースが新しいプロジェクトにデプロイされます。 {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] をクリックすると表示されます :
 
 image::inventory-database-deployment.png[inventory_db_deployments, 700]
 
