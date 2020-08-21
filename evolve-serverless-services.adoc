@@ -57,11 +57,11 @@ Quarkusが _SuperSonic Subatomic Subatomic Java_ と名乗る理由を調べて�
 [source,sh,role="copypaste"]
 ----
 mkdir /tmp/hello && cd /tmp/hello && \
-mvn io.quarkus:quarkus-maven-plugin:1.3.2.Final-redhat-00001:create \
+mvn io.quarkus:quarkus-maven-plugin:1.3.4.Final-redhat-00001:create \
     -DprojectGroupId=org.acme \
     -DprojectArtifactId=getting-started \
     -DplatformGroupId=com.redhat.quarkus \
-    -DplatformVersion=1.3.2.Final-redhat-00001 \
+    -DplatformVersion=1.3.4.Final-redhat-00001 \
     -DclassName="org.acme.quickstart.GreetingResource" \
     -Dpath="/hello"
 ----
@@ -335,9 +335,9 @@ kind: KafkaSource
 metadata:
   name: kafka-source
 spec:
-  bootstrapServers: 
+  bootstrapServers:
    - my-cluster-kafka-bootstrap:9092
-  topics: 
+  topics:
    - orders
   sink:
     ref:
@@ -594,11 +594,12 @@ image::petclinic-deployed-1.png[serverless, 500]
 git リポジトリの要件だけがタスクに宣言されていて、使用する特定の git リポジトリを指定しているわけではありません。これにより、_tasks_ を複数のパイプラインや目的に合わせて再利用できるようになります。再利用可能な _task_ の例は https://github.com/tektoncd/catalog[Tekton Catalog^] や https://github.com/openshift/pipelines-catalog[OpenShift Catalog^] リポジトリにあります。
 ====
 
-Java アプリケーションをコンパイルしてデプロイする方法を知っている、パイプラインで使用する2つの定義済みの Tekton タスクを作成する必要があります。以下のコマンドを使って `openshift-client` と `s2i-java` Tekton タスクをインストールします :
+Java アプリケーションをコンパイルしてデプロイする方法を知っている、パイプラインで使用する2つの定義済みの Tekton タスクを作成する必要があります。以下のコマンドを使って apply-manifests と update-deployment Tekton タスクをインストールします :
 
 [source,sh,role="copypaste"]
 ----
-oc create -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service/knative/pipeline/openshift-client-task.yaml && oc create -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service/knative/pipeline/s2i-java-8-task.yaml
+oc project user1-cloudnative-pipeline &&
+oc create -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service/knative/pipeline/apply_manifests_task.yaml && oc create -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service/knative/pipeline/update_deployment_task.yaml
 ----
 
 すでに CodeReady Workspaces にインストールされている https://github.com/tektoncd/cli/releases[Tekton CLI^] を使って、*tasks* が正しくインストールされているか確認してみましょう :
@@ -613,8 +614,8 @@ tkn task list
 [source,sh]
 ----
 NAME               AGE
-openshift-client   27 seconds ago
-s2i-java-8         27 seconds ago
+apply-manifests   10 seconds ago
+update-deployment 10 seconds ago
 ----
 
 パイプラインは、実行されるべきタスクの数と、それらの入力と出力を介した相互作用の方法を定義します。
@@ -643,41 +644,56 @@ OpenShift コンソールで右上の `+` ボタンをクリックし、以下�
 
 [source,yaml,role="copypaste"]
 ----
-apiVersion: tekton.dev/v1alpha1
+apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:
-  name: petclinic-deploy-pipeline
+  name: build-and-deploy
 spec:
   resources:
-  - name: app-git
+  - name: git-repo
     type: git
-  - name: app-image
+  - name: image
     type: image
+  params:
+  - name: deployment-name
+    type: string
+    description: name of the deployment to be patched
   tasks:
-  - name: build
+  - name: build-image
     taskRef:
-      name: s2i-java-8
-    params:
-      - name: TLSVERIFY
-        value: "false"
+      name: buildah
+      kind: ClusterTask
     resources:
       inputs:
       - name: source
-        resource: app-git
+        resource: git-repo
       outputs:
       - name: image
-        resource: app-image
-  - name: deploy
-    taskRef:
-      name: openshift-client
-    runAfter:
-      - build
+        resource: image
     params:
-    - name: ARGS
-      value:
-        - rollout
-        - latest
-        - spring-petclinic
+    - name: TLSVERIFY
+      value: "false"
+  - name: apply-manifests
+    taskRef:
+      name: apply-manifests
+    resources:
+      inputs:
+      - name: source
+        resource: git-repo
+    runAfter:
+    - build-image
+  - name: update-deployment
+    taskRef:
+      name: update-deployment
+    resources:
+      inputs:
+      - name: image
+        resource: image
+    params:
+    - name: deployment
+      value: $(params.deployment-name)
+    runAfter:
+    - apply-manifests
 ----
 
 作成したパイプラインが表示されます :
@@ -686,37 +702,66 @@ image::console-import-yaml-2.png[serverless, 800]
 
 パイプラインが作成されたので、パイプラインで指定したタスクを実行するためにパイプラインを起動します。まず、実行時にパイプラインで使用する Git リポジトリとイメージレジストリの仕様を含む *PipelineResources* をいくつか作成します。これらは複数のパイプラインにまたがって再利用可能です。
 
-以下の *PipelineResource* は、PetClinic アプリケーションの Git リポジトリとリファレンスを定義しています。OpenShift コンソールの右上隅にある `+` アイコンをクリックします。以下の`petclinic-git` pipelineResource を `YAML` エディタでコピーし、*Create* をクリックします :
+以下の *PipelineResource* はフロントエンドアプリケーションの Git リポジトリです。OpenShift コンソールの右上隅にある `+` アイコンをクリックします。以下の`ui-repo` pipelineResource を `YAML` エディタでコピーし、*Create* をクリックします :
 
 [source,yaml,role="copypaste"]
 ----
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
-  name: petclinic-git
+  name: ui-repo
 spec:
   type: git
   params:
   - name: url
-    value: https://github.com/spring-projects/spring-petclinic
-  - name: revision
-    value: main
+    value: http://github.com/openshift-pipelines/vote-ui.git
 ----
 
-そして、以下は PetClinic イメージをプッシュするための OpenShift 内部レジストリを定義しています。ここでも右上隅の `+` アイコンをクリックします。以下の `petclinic-image` pipelineResource を`YAML` エディタでコピーし、*Create* をクリックします :
+そして以下は、プッシュ先のフロントエンドイメージの OpenShift 内部イメージレジストリを定義しています。ここでも右上隅の+アイコンをクリックします。 `YAML` エディタで以下の `ui-image` pipelineResource をコピーし、 *Create* をクリックします :
 
 [source,yaml,role="copypaste"]
 ----
 apiVersion: tekton.dev/v1alpha1
 kind: PipelineResource
 metadata:
-  name: petclinic-image
+  name: ui-image
 spec:
   type: image
   params:
   - name: url
-    value: image-registry.openshift-image-registry.svc:5000/{{ USER_ID }}-cloudnative-pipeline/spring-petclinic
+    value: image-registry.openshift-image-registry.svc:5000/user1-cloudnative-pipeline/vote-ui:latest
 ----
+
+そして、以下の `api-repo` PipelineResource がバックエンドアプリケーションの git リポジトリを `YAML` エディタで定義しているので、*Create* をクリックします :
+
+[source,yaml,role="copypaste"]
+----
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: api-repo
+spec:
+  type: git
+  params:
+  - name: url
+    value: http://github.com/openshift-pipelines/vote-api.git
+----
+
+そして、以下の `api-image` PipelineResourceは、`YAML` エディタでプッシュするバックエンドイメージの OpenShift 内部イメージレジストリを定義し、 *Create* をクリックします :
+
+[source,yaml,role="copypaste"]
+----
+apiVersion: tekton.dev/v1alpha1
+kind: PipelineResource
+metadata:
+  name: api-image
+spec:
+  type: image
+  params:
+  - name: url
+    value: image-registry.openshift-image-registry.svc:5000/user1-cloudnative-pipeline/vote-api:latest
+----
+
 
 正常に作成されていることを確認するために、CodeReady Workspaces Terminal で以下の _Tekton CLI_ を実行します :
 
@@ -729,9 +774,11 @@ tkn resource ls
 
 [source,shell]
 ----
-NAME              TYPE    DETAILS
-petclinic-git     git     url: https://github.com/spring-projects/spring-petclinic
-petclinic-image   image   url: image-registry.openshift-image-registry.svc:5000/{{ USER_ID }}-cloudnative-pipeline/spring-petclinic
+NAME        TYPE    DETAILS
+api-repo    git     url: http://github.com/openshift-pipelines/vote-api.git
+ui-repo     git     url: http://github.com/openshift-pipelines/vote-ui.git
+api-image   image   url: image-registry.openshift-image-registry.svc:5000/user1-cloudnative-pipeline/vote-api:latest
+ui-image    image   url: image-registry.openshift-image-registry.svc:5000/user1-cloudnative-pipeline/vote-ui:latest
 ----
 
 *PipelineRun* は、パイプラインを起動して、この特定の呼び出しに使用するべき Git やイメージリソースに結びつける方法です。では、 {{{ CONSOLE_URL }}/k8s/ns/{{ USER_ID }}}-cloudnative-pipeline/tekton.dev~v1alpha1~Pipeline[OpenShift Pipelines^] に移動して、*Start* をクリックしてみましょう :
@@ -740,9 +787,21 @@ image::pipeline-start.png[serverless, 800]
 
 このダイアログボックスでは、_build_ ステップのソースレポの最終ターゲット値と、_deploy_ ステップでデプロイするイメージの名前をバインドします。デフォルト値が表示されているので、*Start* をクリックするだけです :
 
+* deployment-name: `vote-api`
+* git-repo: `http://github.com/openshift-pipelines/vote-api.git (api-repo)`
+* image: `image-registry.openshift-image-registry.svc:5000/user1-cloudnative-pipeline/vote-api:latest (api-image)`
+
 image::pipeline-start-popup.png[serverless, 700]
 
-*petclinic-deploy-pipeline* を起動するとすぐに pipelinerun がインスタンス化され、パイプラインで定義されているタスクを実行するためのポッドが作成されます。数分後、パイプラインは正常に終了するはずです。ステップの上にカーソルを置くと、ステップの進捗状況を簡単にスナップショットで見ることができますし、ステップをクリックするとステップの詳細なログを見ることができます。
+*build-and-deploy* を起動するとすぐに pipelinerun がインスタンス化され、パイプラインで定義されているタスクを実行するためのポッドが作成されます。数分後、パイプラインは正常に終了するはずです。ステップの上にカーソルを置くと、ステップの進捗状況を簡単にスナップショットで見ることができますし、ステップをクリックするとステップの詳細なログを見ることができます。
+
+それでは、`vote-ui` アプリケーションをデプロイするためのパイプラインを実行してみましょう。 {{CONSOLE_URL }}/k8s/ns/{{ USER_ID }}}-cloudnative-pipeline/tekton.dev%7Ev1beta1%7EPipeline[OpenShift Pipelines^] に戻って、 *Start* をクリックします。次にパラメータを入力し、以下のようにリソースを選択して、 *Start* をクリックします。
+
+ * deployment-name: `vote-ui`
+ * git-repo: `http://github.com/openshift-pipelines/vote-ui.git (api-repo)`
+ * image: `image-registry.openshift-image-registry.svc:5000/{{ USER_ID }}-cloudnative-pipeline/vote-ui:latest (api-image)`
+
+
 
 image::pipeline-complete.png[serverless, 800]
 

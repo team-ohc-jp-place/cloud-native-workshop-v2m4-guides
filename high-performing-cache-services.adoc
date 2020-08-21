@@ -9,9 +9,9 @@
 
 image::lab1-goal.png[goal, 700]
 
-=== 1. インベントリサービスのデプロイ
+=== 1. inventory-service のデプロイ
 
-_Inventory Service_ は、小売商品の在庫と在庫状況のデータを提供します。インベントリーサービスがどのように動作し、*Quarkus* Javaランタイム上に構築されているかを簡単に見てみましょう。_CodeReady Works_  Web IDE の _/projects_ に移動し、*inventory-service* ディレクトリを展開してください。
+_Inventory Service_ は、小売商品の在庫と在庫状況のデータを提供します。inventory-service がどのように動作し、*Quarkus* Javaランタイム上に構築されているかを簡単に見てみましょう。_CodeReady Works_  Web IDE の _/projects_ に移動し、*inventory-service* ディレクトリを展開してください。
 
 image::codeready-workspace-inventory-project.png[inventory_service, 700]
 
@@ -140,7 +140,7 @@ curl http://localhost:8080/api/inventory | jq
 
 [source,sh,role="copypaste"]
 ----
-mvn quarkus:add-extension -Dextensions="jdbc-postgresql" -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/inventory-service
+mvn -q quarkus:add-extension -Dextensions="jdbc-postgresql" -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/inventory-service
 ----
 
 以下の出力を確認できます :
@@ -286,7 +286,7 @@ image::codeready-workspace-catalog-project.png[catalog, 700]
 
 image::catalog-pom.png[catalog, 700]
 
-また、カタログサービスは、先ほど展開したインベントリサービスをRESTを使って呼び出して、インベントリの状態を取得し、インクルードしています。
+また、catalog-service は、先ほど展開したインベントリサービスをRESTを使って呼び出して、インベントリの状態を取得し、インクルードしています。
 レスポンスの中にそれが表示されます。プロジェクトエクスプローラで `src/main/java/com/redhat/coolstore/service` ディレクトリの `CatalogService.java` を開き、`read()メソッド` と readAll() メソッドがどのように動作するかを確認してください :
 
 image::catalog-service-codes.png[catalog, 700]
@@ -340,12 +340,12 @@ oc start-build catalog --from-file=$CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4
 
 [source,sh,role="copypaste"]
 ----
-oc new-app catalog -e JAVA_OPTS_APPEND='-Dspring.profiles.active=openshift' && oc expose service catalog && \
-oc label deployment/catalog app.kubernetes.io/part-of=catalog app.openshift.io/runtime=spring --overwrite && \
+oc new-app catalog --as-deployment-config -e JAVA_OPTS_APPEND='-Dspring.profiles.active=openshift' && oc expose service catalog && \
+oc label dc/catalog app.kubernetes.io/part-of=catalog app.openshift.io/runtime=spring --overwrite && \
 oc label dc/catalog-database app.kubernetes.io/part-of=catalog app.openshift.io/runtime=postgresql --overwrite && \
-oc annotate deployment/catalog app.openshift.io/connects-to=inventory,catalog-database --overwrite && \
-oc annotate deployment/catalog app.openshift.io/vcs-uri=https://github.com/RedHat-Middleware-Workshops/cloud-native-workshop-v2m4-labs.git --overwrite && \
-oc annotate deployment/catalog app.openshift.io/vcs-ref=ocp-4.5 --overwrite
+oc annotate dc/catalog app.openshift.io/connects-to=inventory,catalog-database --overwrite && \
+oc annotate dc/catalog app.openshift.io/vcs-uri=https://github.com/RedHat-Middleware-Workshops/cloud-native-workshop-v2m4-labs.git --overwrite && \
+oc annotate dc/catalog app.openshift.io/vcs-ref=ocp-4.5 --overwrite
 ----
 
 最後に、実際にロールアウトが完了していることを確認します。カタログは {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] にアクセスして、青い丸が表示されていることを確認してください!
@@ -360,9 +360,9 @@ image::catalog.png[catalog, 700]
 
 === 3. ショッピングカートサービスの開発・展開
 
-これまでに、Coolstore アプリケーションに必要な要素のいくつかを配備しました。しかし、カートのないオンライン・ショップでは、チェックアウトの経験がありません。このセクションでは、ショッピングカートを実装します。マイクロサービスの世界では、これを *cartサービス* と呼び、Javaアーティファクト/レポを *cartサービス* と呼びます。
+これまでに、Coolstore アプリケーションに必要な要素のいくつかを配備しました。しかし、カートのないオンライン・ショップでは、チェックアウトの経験がありません。このセクションでは、ショッピングカートを実装します。マイクロサービスの世界では、これを *cart-service* と呼び、Javaアーティファクト/レポを *cartサービス* と呼びます。
 
-Cartサービスは RESTful で、Red Hat の Distributed _Data Grid_ テクノロジーを使用して Quarkus で構築されています。すべてのショッピングカートのデータを保存し、それぞれに一意の ID を割り当てます。これを行うには、Quarkus の _Infinispan_ クライアント_を使用します（_Infinispan_は、Red Hat Data Gridがベースになっているアップストリームプロジェクトの名前です）。ショッピングカートは、Quarkus RESTクライアントを介して呼び出しを行い、カタログ内のすべてのアイテムを取得します。最終的に、ショッピングカートはまた、ユーザーがチェックアウトしているときに、注文ごとに_Kafka_にメッセージをプッシュします。そのために、Quarkus Kafkaクライアントを使用します。
+cart-servcie は RESTful で、Red Hat の Distributed _Data Grid_ テクノロジーを使用して Quarkus で構築されています。すべてのショッピングカートのデータを保存し、それぞれに一意の ID を割り当てます。これを行うには、Quarkus の _Infinispan_ クライアント_を使用します（_Infinispan_は、Red Hat Data Gridがベースになっているアップストリームプロジェクトの名前です）。ショッピングカートは、Quarkus REST クライアントを介して呼び出しを行い、カタログ内のすべてのアイテムを取得します。最終的に、ショッピングカートはまた、ユーザーがチェックアウトしているときに、注文ごとに_Kafka_にメッセージをプッシュします。そのために、Quarkus Kafkaクライアントを使用します。
 
 ショッピングカートとは何ですか？ショッピングカートはショッピングアイテムのリストを持っています。各アイテムには _quantity_ と、割引やプロモーションの詳細などの他のフィールドがあります。これらについては、モデルを見るときに詳しく見ていきましょう。
 
@@ -376,7 +376,7 @@ Red Hat Distributed _Data Grid_ を使用して、すべてのユーザーのカ
 
 [source,sh,role="copypaste"]
 ----
-oc new-app jboss/infinispan-server:10.0.0.Beta3 --name=datagrid-service
+oc new-app --as-deployment-config jboss/infinispan-server:10.0.0.Beta3 --name=datagrid-service
 ----
 
 これにより、ショッピングカートを格納するためのデータグリッドサーバのインスタンスが1つ作成されます。
@@ -611,7 +611,7 @@ CodeReady Workspaces Terminal 経由で _openshift_ 拡張機能を追加しま�
 
 [source,sh,role="copypaste"]
 ----
-mvn quarkus:add-extension -Dextensions="openshift" -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/cart-service
+mvn -q quarkus:add-extension -Dextensions="openshift" -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/cart-service
 ----
 
 以下が確認できます:
@@ -662,7 +662,7 @@ oc rollout status -w dc/cart
 [source,sh,role="copypaste"]
 ----
 oc label dc/cart app.kubernetes.io/part-of=cart app.openshift.io/runtime=quarkus --overwrite && \
-oc label deployment/datagrid-service app.kubernetes.io/part-of=cart app.openshift.io/runtime=datagrid --overwrite && \
+oc label dc/datagrid-service app.kubernetes.io/part-of=cart app.openshift.io/runtime=datagrid --overwrite && \
 oc annotate dc/cart app.openshift.io/connects-to=catalog,datagrid-service --overwrite && \
 oc annotate dc/cart app.openshift.io/vcs-ref=ocp-4.5 --overwrite
 ----
@@ -689,7 +689,7 @@ CodeReady Workspaces Terminal 経由で Quarkus Extensions を使用してMaven�
 
 [source,sh,role="copypaste"]
 ----
-mvn quarkus:add-extension -Dextensions="resteasy-jsonb,mongodb-client" -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/order-service
+mvn -q quarkus:add-extension -Dextensions="resteasy-jsonb,mongodb-client" -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/order-service
 ----
 
 アウトプットを見ることができます :
@@ -911,7 +911,7 @@ _Quarkus_ は、_CodecProvider_ を登録してくれます。
 
 [source,sh,role="copypaste"]
 ----
-oc new-app -n {{ USER_ID }}-cloudnativeapps --docker-image mongo:4.0 --name=order-database
+oc new-app --as-development-config -n {{ USER_ID }}-cloudnativeapps --docker-image mongo:4.0 --name=order-database
 ----
 
 では、アプリケーション自体をデプロイしてみましょう。以下のコマンドを実行すると、OpenShift拡張機能を使用してビルドとデプロイが行われます :
@@ -937,7 +937,7 @@ oc rollout status -w dc/order
 [source,sh,role="copypaste"]
 ----
 oc label dc/order app.kubernetes.io/part-of=order --overwrite && \
-oc label deployment/order-database app.kubernetes.io/part-of=order app.openshift.io/runtime=mongodb --overwrite && \
+oc label dc/order-database app.kubernetes.io/part-of=order app.openshift.io/runtime=mongodb --overwrite && \
 oc annotate dc/order app.openshift.io/connects-to=order-database --overwrite && \
 oc annotate dc/order app.openshift.io/vcs-ref=ocp-4.5 --overwrite
 ----
@@ -964,7 +964,7 @@ curl -s http://order-{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN }}/api/ord
 
 === 5. WEB-UI サービス のデプロイ
 
-当社の Web UI は、 https://angularjs.org/[AngularJS^] と http://patternfly.org/[PatternFly^] をベースにしたフロントエンドを https://access.redhat.com/documentation/en/openshift-container-platform/3.3/paged/using-images/chapter-2-source-to-image-s2i[Node.js] コンテナで実行しています。 https://www.redhat.com/en/products/runtimes[Red Hat Runtimes^] には、クラウドネイティブ開発に使用される他のランタイムとともに *Node.js* のサポートが含まれています。
+私たちの Web UI は、 https://angularjs.org/[AngularJS^] と http://patternfly.org/[PatternFly^] をベースにしたフロントエンドを https://access.redhat.com/documentation/en/openshift-container-platform/3.3/paged/using-images/chapter-2-source-to-image-s2i[Node.js] コンテナで実行しています。 https://www.redhat.com/en/products/runtimes[Red Hat Runtimes^] には、クラウドネイティブ開発に使用される他のランタイムとともに *Node.js* のサポートが含まれています。
 
 フロントエンドサービスがどのように動作し、Node.js ランタイム上に構築されているかを簡単に説明しましょう。CodeReady Workspaces の _/projects_ に移動し、`coolstore-ui` ディレクトリを展開します。
 

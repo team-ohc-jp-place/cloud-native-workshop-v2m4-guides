@@ -81,7 +81,7 @@ CodeReady Workspaces Terminal で Quarkus Kafka の拡張機能を使って Mave
 
 [source,sh,role="copypaste"]
 ----
-mvn quarkus:add-extension -Dextensions="kafka" -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service
+mvn -q quarkus:add-extension -Dextensions="kafka" -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service
 ----
 
 アウトプットに以下を確認することができます :
@@ -338,7 +338,7 @@ Quarkus *Kafka* 拡張機能を使用して Maven の依存関係を追加しま
 
 [source,sh,role="copypaste"]
 ----
-mvn quarkus:add-extension -Dextensions="kafka" -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/cart-service
+mvn -q quarkus:add-extension -Dextensions="kafka" -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/cart-service
 ----
 
 以下の出力を確認できます :
@@ -448,7 +448,7 @@ Quarkus *Kafka* 拡張機能を使用してMavenの依存関係を追加しま�
 
 [source,sh,role="copypaste"]
 ----
-mvn quarkus:add-extension -Dextensions="kafka" -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/order-service
+mvn -q quarkus:add-extension -Dextensions="kafka" -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/order-service
 ----
 
 以下のアウトプットを確認できます :
