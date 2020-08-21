@@ -262,7 +262,7 @@ oc start-build payment --from-file=$CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4
 
 このステップでは、ネイティブバイナリとベース OS イメージを組み合わせ、新しいコンテナイメージを作成し、内部イメージレジストリにプッシュします。
 
-{{ CONSOLE_URL }}/add/ns/{{ USER_ID }}}-cloudnativeapps[+Add] に移動して、_Knative Service_ を作成し、*Container Image* をクリックします。:
+{{ CONSOLE_URL }}/add/ns/{{ USER_ID }}-cloudnativeapps[+Add] に移動して、_Knative Service_ を作成し、*Container Image* をクリックします。:
 
 image::add-icon.png[serverless, 700]
 
@@ -281,7 +281,7 @@ image::add-icon.png[serverless, 700]
 
 image::deploy-payment-image.png[serverless, 900]
 
-サービスの作成に成功すると、 {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View] に *Knative Service* (_KSVC_)と *Revision* (_REV_)が表示されるはずです :
+サービスの作成に成功すると、{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View] に *Knative Service* (_KSVC_)と *Revision* (_REV_)が表示されるはずです :
 
 [NOTE]
 ====
@@ -305,7 +305,7 @@ image::quarkus-label.png[serverless, 500]
 
 image::kservice-up-quarkus.png[serverless, 700]
 
-ラボ環境では、_OpenShift Serverless_ は、サービス(つまり支払い)は *30秒間* リクエストがない場合に自動的にサービスをゼロにスケールダウンしますこれは、支払いサービスの Pod が 30 秒後に利用できなくなることを意味します。もう一度 {{CONSOLE_URL }}/topology/ns/{{ USER_ID }}}-cloudnativeapps[Topology View^] にアクセスしてください。決済サービスに *青丸* がないことを確認してください!
+ラボ環境では、_OpenShift Serverless_ は、サービス(つまり支払い)は *30秒間* リクエストがない場合に自動的にサービスをゼロにスケールダウンしますこれは、支払いサービスの Pod が 30 秒後に利用できなくなることを意味します。もう一度 {{CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] にアクセスしてください。決済サービスに *青丸* がないことを確認してください!
 
 [NOTE]
 ====
