@@ -911,7 +911,7 @@ _Quarkus_ は、_CodecProvider_ を登録してくれます。
 
 [source,sh,role="copypaste"]
 ----
-oc new-app --as-development-config -n {{ USER_ID }}-cloudnativeapps --docker-image mongo:4.0 --name=order-database
+oc new-app -n {{ USER_ID }}-cloudnativeapps --docker-image mongo:4.0 --name=order-database
 ----
 
 では、アプリケーション自体をデプロイしてみましょう。以下のコマンドを実行すると、OpenShift拡張機能を使用してビルドとデプロイが行われます :
