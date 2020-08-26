@@ -300,7 +300,7 @@ mvn clean package spring-boot:repackage -DskipTests -f $CHE_PROJECTS_ROOT/cloud-
 
 ビルドとデプロイには 1～2 分かかる場合があります。完了するのを待ちましょう。ビルド出力の最後に `BUILD SUCCESS` が表示されるはずです。
 
-私たちの `production` カタログマイクロサービスは、インベントリデータを格納するために外部データベース (PostgreSQL) を使用します。 {{ CONSOlE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] にアクセスしてください。
+私たちの `production` カタログマイクロサービスは、インベントリデータを格納するために外部データベース (PostgreSQL) を使用します。 {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] にアクセスしてください。
 
 プロジェクト概要の _Database_ ボックスの左側にある *+Add* をクリックします :
 
