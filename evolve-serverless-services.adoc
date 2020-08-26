@@ -281,14 +281,14 @@ image::add-icon.png[serverless, 700]
 
 image::deploy-payment-image.png[serverless, 900]
 
-サービスの作成に成功すると、{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View] に *Knative Service* (_KSVC_)と *Revision* (_REV_)が表示されるはずです :
+サービスの作成に成功すると、 {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View] に *Knative Service* (_KSVC_)と *Revision* (_REV_)が表示されるはずです :
 
 [NOTE]
 ====
 ネットワークが適切に設定されている間は、完全にレンダリングされるまでに数分(最大2分)かかります。空のボックスが表示される場合は、ブラウザのページをリロードしてみてください。
 ====
 
-ラベルを編集して、_Quarkus_ アイコンを追加してみましょう。これまでは `oc label` コマンドで行っていましたが、今回は手動で行ってみましょう。支払い *REV* をクリックして、_Actions_ ドロップボックスで*Edit Labels* を選択します :
+ラベルを編集して、_Quarkus_ アイコンを追加してみましょう。これまでは `oc label` コマンドで行っていましたが、今回は手動で行ってみましょう。支払い *REV* をクリックして、_Actions_ ドロップボックスで *Edit Labels* を選択します :
 
 image::kservice-up.png[serverless, 700]
 
@@ -383,7 +383,7 @@ image::checkout-serverless.png[serverless, 1000]
 image::input-cc-info-serverless.png[serverless, 1000]
 
 [arabic, start=4]
-. _Kafka Event_ がどのようにして _Knative Eventing_ を有効にしているのか確認してみましょう。 {{CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] に戻って、*支払いサービス*が自動的に起動しているかどうか確認してください。
+. _Kafka Event_ がどのようにして _Knative Eventing_ を有効にしているのか確認してみましょう。 {{CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View^] に戻って、*支払いサービス* が自動的に起動しているかどうか確認してください。
 
 image::payment-serving-magic.png[serverless, 500]
 
@@ -442,137 +442,8 @@ https://github.com/spring-projects/spring-petclinic[Spring PetClinic^] マイク
 
 OpenShift 上に _PetClinic_ アプリをデプロイするための Kubernetes オブジェクトを作成します。PetClinic アプリ用のコンテナイメージがまだ構築されていないので、デプロイは完了しません。これは以下のセクションで CI/CD パイプラインを介して行います。
 
-*payment-service* プロジェクトの _knative/pipeline_ で *petclinic.yaml* を開き、以下のコードを YAML ファイルにコピーしてください :
+Javaアプリケーションをコンパイルしてデプロイする方法を知っているパイプラインで使用する2つの事前定義済みのTektonタスクを作成する必要があります。以下のコマンドを使用して、 apply-manifests と update-deployment Tekton タスクをインストールします。
 
-[source,yaml,role="copypaste"]
-----
----
-apiVersion: image.openshift.io/v1
-kind: ImageStream
-metadata:
-  labels:
-    app: spring-petclinic
-  name: spring-petclinic
----
-apiVersion: apps.openshift.io/v1
-kind: DeploymentConfig
-metadata:
-  labels:
-    app: spring-petclinic
-    app.openshift.io/runtime: spring
-  name: spring-petclinic
-spec:
-  replicas: 1
-  revisionHistoryLimit: 10
-  selector:
-    app: spring-petclinic
-    deploymentconfig: spring-petclinic
-  strategy:
-    activeDeadlineSeconds: 21600
-    resources: {}
-    rollingParams:
-      intervalSeconds: 1
-      maxSurge: 25%
-      maxUnavailable: 25%
-      timeoutSeconds: 600
-      updatePeriodSeconds: 1
-    type: Rolling
-  template:
-    metadata:
-      labels:
-        app: spring-petclinic
-        deploymentconfig: spring-petclinic
-    spec:
-      containers:
-      - image: spring-petclinic:latest
-        imagePullPolicy: Always
-        livenessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /
-            port: 8080
-            scheme: HTTP
-          initialDelaySeconds: 45
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 1
-        name: spring-petclinic
-        ports:
-        - containerPort: 8080
-          protocol: TCP
-        - containerPort: 8443
-          protocol: TCP
-        - containerPort: 8778
-          protocol: TCP
-        readinessProbe:
-          failureThreshold: 3
-          httpGet:
-            path: /
-            port: 8080
-            scheme: HTTP
-          initialDelaySeconds: 45
-          periodSeconds: 10
-          successThreshold: 1
-          timeoutSeconds: 5
-        resources: {}
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
-      dnsPolicy: ClusterFirst
-      restartPolicy: Always
-      schedulerName: default-scheduler
-      securityContext: {}
-      terminationGracePeriodSeconds: 30
-  test: false
-  triggers:
-  - imageChangeParams:
-      containerNames:
-      - spring-petclinic
-      from:
-        kind: ImageStreamTag
-        name: spring-petclinic:latest
-        namespace: {{ USER_ID }}-cloudnative-pipeline
-    type: ImageChange
----
-apiVersion: v1
-kind: Service
-metadata:
-  labels:
-    app: spring-petclinic
-  name: spring-petclinic
-spec:
-  ports:
-  - name: 8080-tcp
-    port: 8080
-    protocol: TCP
-    targetPort: 8080
-  - name: 8443-tcp
-    port: 8443
-    protocol: TCP
-    targetPort: 8443
-  - name: 8778-tcp
-    port: 8778
-    protocol: TCP
-    targetPort: 8778
-  selector:
-    app: spring-petclinic
-    deploymentconfig: spring-petclinic
-  sessionAffinity: None
-  type: ClusterIP
----
-apiVersion: route.openshift.io/v1
-kind: Route
-metadata:
-  labels:
-    app: spring-petclinic
-  name: spring-petclinic
-spec:
-  port:
-    targetPort: 8080-tcp
-  to:
-    kind: Service
-    name: spring-petclinic
-    weight: 100
-----
 
 Kubernetes のオブジェクトを生成します :
 
