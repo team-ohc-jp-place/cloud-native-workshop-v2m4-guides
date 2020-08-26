@@ -534,7 +534,6 @@ mp.messaging.incoming.payments.bootstrap.servers=my-cluster-kafka-bootstrap:9092
 mp.messaging.incoming.payments.group.id=order-service
 mp.messaging.incoming.payments.auto.offset.reset=earliest
 mp.messaging.incoming.payments.enable.auto.commit=true
-mp.messaging.incoming.payments.request.timeout.ms=30000
 
 # Enable CORS requests from browsers
 quarkus.http.cors=true
@@ -547,7 +546,6 @@ mp.messaging.incoming.orders.bootstrap.servers=my-cluster-kafka-bootstrap:9092
 mp.messaging.incoming.orders.group.id=order-service
 mp.messaging.incoming.orders.auto.offset.reset=earliest
 mp.messaging.incoming.orders.enable.auto.commit=true
-mp.messaging.incoming.orders.request.timeout.ms=30000
 ----
 
 次のコマンドを使用して注文サービスを再パッケージ化し、CodeReady Workspaces Terminal を介してデプロイするために maven プラグインを使用します。:
