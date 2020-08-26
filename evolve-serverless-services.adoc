@@ -455,7 +455,7 @@ Java アプリケーションをコンパイルしてデプロイする方法を
 
 [source,sh,role="copypaste"]
 ----
-oc project user1-cloudnative-pipeline &&
+oc project {{ USER_ID }}-cloudnative-pipeline &&
 oc create -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service/knative/pipeline/apply_manifests_task.yaml && oc create -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service/knative/pipeline/update_deployment_task.yaml
 ----
 
