@@ -638,7 +638,7 @@ api-image   image   url: image-registry.openshift-image-registry.svc:5000/user1-
 ui-image    image   url: image-registry.openshift-image-registry.svc:5000/user1-cloudnative-pipeline/vote-ui:latest
 ----
 
-*PipelineRun* は、パイプラインを起動して、この特定の呼び出しに使用するべき Git やイメージリソースに結びつける方法です。では、 {{{ CONSOLE_URL }}/k8s/ns/{{ USER_ID }}}-cloudnative-pipeline/tekton.dev~v1alpha1~Pipeline[OpenShift Pipelines^] に移動して、*Start* をクリックしてみましょう :
+*PipelineRun* は、パイプラインを起動して、この特定の呼び出しに使用するべき Git やイメージリソースに結びつける方法です。では、 {{ CONSOLE_URL }}/k8s/ns/{{ USER_ID }}-cloudnative-pipeline/tekton.dev%7Ev1beta1%7EPipeline[OpenShift Pipelines^] に移動して、*Start* をクリックしてみましょう :
 
 image::pipeline-start.png[serverless, 800]
 
