@@ -449,7 +449,8 @@ Kubernetes のオブジェクトを生成します :
 
 [source,sh,role="copypaste"]
 ----
-oc project {{ USER_ID }}-cloudnative-pipeline && oc create -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service/knative/pipeline/petclinic.yaml
+oc project {{ USER_ID }}-cloudnative-pipeline &&
+oc create -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service/knative/pipeline/apply_manifests_task.yaml && oc create -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service/knative/pipeline/update_deployment_task.yaml
 ----
 
 パイプラインのために {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnative-pipeline[Topology View^] にアクセスし,  そして、まだ青い丸を得ることができないことを確認してください!
