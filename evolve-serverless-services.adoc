@@ -442,21 +442,6 @@ https://github.com/spring-projects/spring-petclinic[Spring PetClinic^] マイク
 
 OpenShift 上に _PetClinic_ アプリをデプロイするための Kubernetes オブジェクトを作成します。PetClinic アプリ用のコンテナイメージがまだ構築されていないので、デプロイは完了しません。これは以下のセクションで CI/CD パイプラインを介して行います。
 
-Javaアプリケーションをコンパイルしてデプロイする方法を知っているパイプラインで使用する2つの事前定義済みのTektonタスクを作成する必要があります。以下のコマンドを使用して、 apply-manifests と update-deployment Tekton タスクをインストールします。
-
-
-Kubernetes のオブジェクトを生成します :
-
-[source,sh,role="copypaste"]
-----
-oc project {{ USER_ID }}-cloudnative-pipeline &&
-oc create -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service/knative/pipeline/apply_manifests_task.yaml && oc create -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service/knative/pipeline/update_deployment_task.yaml
-----
-
-パイプラインのために {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnative-pipeline[Topology View^] にアクセスし,  そして、まだ青い丸を得ることができないことを確認してください!
-
-image::petclinic-deployed-1.png[serverless, 500]
-
 *タスク* は、順次実行される複数のステップで構成されています。TaskRun を作成することで _Task_ が実行されます。TaskRun は1つの Pod をスケジュールします。各ステップは、同じポッド内の別のコンテナで実行されます。また、パイプライン内の他のタスクと相互作用するために、入力と出力を持つこともできます。
 
 タスク _task_ が実行を開始すると、ポッドを起動し、同じポッド上の別のコンテナ内で各 *ステップ* を順次実行します。このタスクはたまたま単一のステップを持っていますが、タスクは複数のステップを持つことができ、同じポッド内で実行しているので、ファイルのキャッシュや configmaps、secret などにアクセスするために同じボリュームにアクセスすることができます。タスク `Tasks` は入力 (git リポジトリなど) と出力 (レジストリのイメージなど) を受け取って相互にやりとりすることもできます。
