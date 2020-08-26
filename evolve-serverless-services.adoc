@@ -586,7 +586,7 @@ spec:
   type: image
   params:
   - name: url
-    value: image-registry.openshift-image-registry.svc:5000/user1-cloudnative-pipeline/vote-ui:latest
+    value: image-registry.openshift-image-registry.svc:5000/{{ USER_ID }}-cloudnative-pipeline/vote-ui:latest
 ----
 
 そして、以下の `api-repo` PipelineResource がバックエンドアプリケーションの git リポジトリを `YAML` エディタで定義しているので、*Create* をクリックします :
@@ -616,7 +616,7 @@ spec:
   type: image
   params:
   - name: url
-    value: image-registry.openshift-image-registry.svc:5000/user1-cloudnative-pipeline/vote-api:latest
+    value: image-registry.openshift-image-registry.svc:5000/{{ USER_ID }}-cloudnative-pipeline/vote-api:latest
 ----
 
 
@@ -644,9 +644,9 @@ image::pipeline-start.png[serverless, 800]
 
 このダイアログボックスでは、_build_ ステップのソースレポの最終ターゲット値と、_deploy_ ステップでデプロイするイメージの名前をバインドします。デフォルト値が表示されているので、*Start* をクリックするだけです :
 
-* deployment-name: `vote-api`
-* git-repo: `http://github.com/openshift-pipelines/vote-api.git (api-repo)`
-* image: `image-registry.openshift-image-registry.svc:5000/user1-cloudnative-pipeline/vote-api:latest (api-image)`
+ * deployment-name: `vote-api`
+ * git-repo: `http://github.com/openshift-pipelines/vote-api.git (api-repo)`
+ * image: `image-registry.openshift-image-registry.svc:5000/{{ USER_ID }}-cloudnative-pipeline/vote-api:latest (api-image)`
 
 image::pipeline-start-popup.png[serverless, 700]
 
