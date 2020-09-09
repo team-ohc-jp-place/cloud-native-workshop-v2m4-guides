@@ -150,9 +150,10 @@ mvn -q quarkus:add-extension -Dextensions="kafka" -f $CHE_PROJECTS_ROOT/cloud-na
             // fake processing time
             Thread.sleep(5000); // <1>
             if (!ccDetails.getString("number").startsWith("4")) {
-                 fail(orderId, paymentId, "Invalid Credit Card: " + ccDetails.getString("number"));
+                fail(orderId, paymentId, "Invalid Credit Card: " + ccDetails.getString("number"));
+            } else {
+                pass(orderId, paymentId, "Payment of " + total + " succeeded for " + name + " CC details: " + ccDetails.toString());
             }
-             pass(orderId, paymentId, "Payment of " + total + " succeeded for " + name + " CC details: " + ccDetails.toString());
         } catch (Exception ex) {
              fail(orderId, paymentId, "Unknown error: " + ex.getMessage() + " for payment: " + cloudEventJson);
         }
@@ -460,7 +461,7 @@ mvn -q quarkus:add-extension -Dextensions="kafka" -f $CHE_PROJECTS_ROOT/cloud-na
 
 このコマンドは、Quarkus アプリケーション用の Kafka 拡張機能をインポートして Maven プロジェクトを生成し、Kafka と統合して _payments_ と _orders_ トピックをサブスクライブするために必要なすべての機能を提供します。
 
-着信メッセージと発信メッセージを処理するには、`src/main/java/com/redhat/cloudnative` ディレクトリに `KafkaOrders.java` という名前の新しい Java クラスを作成して、Kafka の _orders_ と _payments_ トピックからのメッセージを利用します。以下のコード全体を _KafkaOrders.java_ にコピーします。
+Orderサービスにおいて、着信メッセージと発信メッセージを処理するには、`order-service/src/main/java/com/redhat/cloudnative` ディレクトリに `KafkaOrders.java` という名前の新しい Java クラスを作成して、Kafka の _orders_ と _payments_ トピックからのメッセージを利用します。以下のコード全体を _KafkaOrders.java_ にコピーします。
 
 [source,java,role="copypaste"]
 ----
@@ -570,12 +571,12 @@ Coolstore の GUI テストで `Kafka` メッセージングを使って、す�
 以下のショッピングシナリオでは、ショッピングカートにいくつかのクールなアイテムを追加します。:
 
 [arabic]
-. *Add to Cart* をクリックして、_Red Hat Fedora_ をカートに追加してください。トップメニューの下に `Success! Added!」というメッセージが表示されます。
+. *Add to Cart* をクリックして、 _Quarkus T-shirt_ をカートに追加してください。トップメニューの下に `Success! Added!` というメッセージが表示されます。
 
 image::add-to-cart.png[serverless, 1000]
 
 [arabic, start=2]
-. *Your Shopping Cart* タブに移動し、*Checkout* ボタンをクリックします。クレジットカード情報を入力します。カード情報は16桁で、数字の `4` で始まる必要があります。例えば、`4123987754646678` のようになります。
+. *Cart* タブに移動し、 *Checkout* ボタンをクリックします。クレジットカード情報を入力します。カード情報は16桁で、数字の `4` で始まる必要があります。例えば、 `4123987754646678` のようになります。
 
 [NOTE]
 ====
@@ -590,12 +591,12 @@ image::checkout.png[serverless, 1000]
 image::input-cc-info.png[serverless, 1000]
 
 [arabic, start=4]
-. *All Orders* タブの _Payment Status_ を確認してください。`Processing`になっているはずです。
+. *Orders* タブの _Payment Status_ を確認してください。 `Processing` になっているはずです。
 
 image::payment-processing.png[serverless, 1000]
 
 [arabic, start=5]
-. しばらくしてから、*All Orders* ページをリロードして、支払いステータスが `COMPLETED` または `FAILED` に変更されたことを確認してください。
+. しばらくしてから、 *AOrders* ページをリロードして、支払いステータスが `COMPLETED` または `FAILED` に変更されたことを確認してください。
 
 [NOTE]
 ====

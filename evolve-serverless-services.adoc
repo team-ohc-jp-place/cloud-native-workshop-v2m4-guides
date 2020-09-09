@@ -84,6 +84,32 @@ mvn -f /tmp/hello/getting-started/pom.xml clean package -Pnative -DskipTests
 
 image::payment-native-image-build.png[serverless, 700]
 
+ネイティブビルドの出力はネイティブLinuxバイナリです。 `readelf` コマンドを利用して確認できます。 ターミナルでこれを実行してください:
+
+[source,sh,role="copypaste"]
+----
+readelf -h /tmp/hello/getting-started/target/*-runner
+----
+
+以下が確認できます。
+
+[source,console]
+----
+ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              EXEC (Executable file)
+  Machine:                           Advanced Micro Devices X86-64
+  Version:                           0x1
+  ....
+----
+
+これはLinux上でのみ実行可能なバイナリです。しかし、すぐにご覧いただくことになりますが、このネイティブ実行ファイルは _非常に_ 高速に起動し、メモリ消費も少なくなっています。
+
 ここでの環境は Linux なので、実行するだけで OK です。CodeReady Workspaces Terminal で実行します :
 
 [source,sh,role="copypaste"]
@@ -104,12 +130,12 @@ __  ____  __  _____   ___  __ ____  ______
  --/ __ \/ / / / _ | / _ \/ //_/ / / / __/
  -/ /_/ / /_/ / __ |/ , _/ ,< / /_/ /\ \
 --\___\_\____/_/ |_/_/|_/_/|_|\____/___/
-2020-04-06 13:48:33,523 INFO  [io.quarkus] (main) getting-started 1.0-SNAPSHOT (powered by Quarkus xx.xx.xx) started in 0.018s. Listening on: http://0.0.0.0:8080
-2020-04-06 13:48:33,523 INFO  [io.quarkus] (main) Profile prod activated.
-2020-04-06 13:48:33,523 INFO  [io.quarkus] (main) Installed features: [cdi, resteasy]
+2020-07-24 21:58:25,057 INFO  [io.quarkus] (main) getting-started 1.0-SNAPSHOT (powered by Quarkus xx.xx.xx) started in 0.009s. Listening on: http://0.0.0.0:8080
+2020-07-24 21:58:25,057 INFO  [io.quarkus] (main) Profile prod activated.
+2020-07-24 21:58:25,057 INFO  [io.quarkus] (main) Installed features: [cdi, resteasy]
 ----
 
-起動に *18ミリ秒* かかります。お使いの環境によっては起動時間が異なる場合があります。
+起動に *9ミリ秒* かかりました。お使いの環境によっては起動時間が異なる場合があります。
 
 また、Linux の `ps` ユーティリティで報告されているように、メモリ使用量が非常に少なくなっています。アプリを実行している間、別のターミナルで以下のコマンドを実行します :
 
@@ -123,10 +149,10 @@ ps -o pid,rss,command -p $(pgrep -f runner)
 [source,shell]
 ----
     PID   RSS COMMAND
-   2438 27268 /tmp/hello/getting-started/target/getting-started-1.0-SNAPSHOT-runner
+   1020 68960 /tmp/hello/getting-started/target/getting-started-1.0-SNAPSHOT-runner
 ----
 
-これは、私たちのプロセスが `27 MB` 程度のメモリを消費していることを示しています (https://en.wikipedia.org/wiki/Resident_set_size[Resident Set Size^] 、または RSS)。かなりコンパクトです。
+これは、私たちのプロセスが 67MB 程度のメモリを消費していることを示しています (https://en.wikipedia.org/wiki/Resident_set_size[Resident Set Size^] 、または RSS)。かなりコンパクトです。
 
 [NOTE]
 ====
@@ -262,7 +288,7 @@ oc start-build payment --from-file=$CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4
 
 このステップでは、ネイティブバイナリとベース OS イメージを組み合わせ、新しいコンテナイメージを作成し、内部イメージレジストリにプッシュします。
 
-{{ CONSOLE_URL }}/add/ns/{{ USER_ID }}-cloudnativeapps[+Add] に移動して、_Knative Service_ を作成し、*Container Image* をクリックします。:
+{{ CONSOLE_URL }}/add/ns/{{ USER_ID }}-cloudnativeapps[+Add^] に移動して、 _Knative Service_ を作成し、 *Container Image* をクリックします。:
 
 image::add-icon.png[serverless, 700]
 
@@ -368,12 +394,12 @@ image::payment-down-again.png[serverless, 700]
 以下のショッピングシナリオでは、ショッピングカートにいくつかのクールなアイテムを追加します。:
 
 [arabic]
-. *カートに追加* をクリックして、_Forge Laptop Sticker_ をカートに追加してください。トップメニューの下に `Success! トップメニューの下に「追加されました！」というメッセージが表示されます。
+. *Add to Cart* をクリックして、 _Pronounced Kubernetes_ をカートに追加してください。トップメニューの下に `Success! Added!` というメッセージが表示されます。
 
 image::add-to-cart-serverless.png[serverless, 1000]
 
 [arabic, start=2]
-. *Your Shopping Cart* タブに移動し、*Checkout* ボタンをクリックします。クレジットカード情報を入力します。カード情報は16桁で、数字の `4` で始まる必要があります。例えば、`4123987754646678`のように入力します。 
+. *Cart* タブに移動し、 *Checkout* ボタンをクリックします。クレジットカード情報を入力します。カード情報は16桁で、数字の `4` で始まる必要があります。例えば、 `4123987754646678` のように入力します。 
 
 image::checkout-serverless.png[serverless, 1000]
 
@@ -394,7 +420,7 @@ image::payment-processing-serverless.png[serverless, 1000]
 
 
 [arabic, start=5]
-. *All Orders* タブで、ショッピング商品の_お支払い状況を確認してください。`Processing` になっているはずです。
+. しばらく待ってから *Orders* ページをリロードして、支払い状況が `COMPLETED` か `FAILED` になっていることを確認してください。
 
 [NOTE]
 ====
@@ -407,20 +433,21 @@ image::payment-completedorfailed-serverless.png[serverless, 1000]
 
 === 5. Tekton を使用した Cloud-Native CI/CD パイプラインの作成
 
-Cloud Native アプリケーション/マイクロサービスを構築、テスト、デプロイ、管理するためのオープンソース CI/CD ツールは、オンプレミスからプライベート、パブリック、ハイブリッドクラウドまで、数多く存在します。各ツールは、既存のプラットフォーム/システムと統合するためのさまざまな機能を提供しています。そのため、DevOps チームが CI/CD パイプラインを作成し、Kubernetes クラスター上で保守することができなくなることがあります。*Cloud Native CI/CD パイプライン* は、Kubernetes Native の方法で定義し、実行する必要があります。例えば、パイプラインは YAML 形式で Kubernetes リソースとして指定することができます。
+Cloud Native アプリケーション/マイクロサービスを構築、テスト、デプロイ、管理するためのオープンソース CI/CD ツールは、オンプレミスからプライベート、パブリック、ハイブリッドクラウドまで、数多く存在します。各ツールは、既存のプラットフォーム/システムと統合するためのさまざまな機能を提供しています。そのため、DevOps チームが CI/CD パイプラインを作成し、Kubernetes クラスター上で保守することができなくなることがあります。 *Cloud Native CI/CD パイプライン* は、Kubernetes Native の方法で定義し、実行する必要があります。例えば、パイプラインは YAML 形式で Kubernetes リソースとして指定することができます。
 
-*OpenShift Pipelines* は、_Tekton_ をベースにした Kubernetes スタイルの CI/CD ソリューションです。Tekton のビルディングブロックをベースに構築されており、OpenShift や Red Hat の開発者ツールと緊密に統合することで CI/CD 体験を提供します。OpenShift Pipelinesは、CI/CD パイプラインの各ステップを独自のコンテナで実行するように設計されており、各ステップを独立してスケールさせ、以下の機能でパイプラインの要求に対応できるようにしています。
+*OpenShift Pipelines* は、Tektonを使用してパイプラインを構築するためのクラウドネイティブの継続的インテグレーション＆デリバリ（CI/CD）ソリューションです。Tektonは柔軟性に優れたKubernetesネイティブのオープンソースCI/CDフレームワークであり、以下のような特徴をによって足回りの詳細を抽象化することで、複数のプラットフォーム（Kubernetes、サーバーレス、VMなど）にまたがるデプロイメントを自動化することができます:
 
-* 標準の Tekton CRD を使用して、コンテナとして実行され、オンデマンドでスケールするパイプラインを定義します。
-* チームのデリバリーパイプライン、プラグイン、アクセスコントロールを完全に制御し、中央 CI/CD サーバーで管理する必要はありません。
-* OpenShift Console の開発者視点、CLI、IDEによる合理化されたユーザー体験。
-
-image::pipeline-features.png[pipeline, 800]
+* Tektonに基づく標準ベースのCI/CDパイプライン定義
+* S2I、Buildah、Buildpacks、KanikoなどのKubernetesツールを使ってイメージを構築
+* Kubernetes、サーバーレス、VMなどの複数のプラットフォームへのアプリケーションのデプロイ
+* 既存のツールとの拡張・統合が容易
+* パイプラインをオンデマンドで拡張
+* あらゆるKubernetesプラットフォームに対応した移植性
+* マイクロサービスや分散型チームのための設計
+* OpenShift Developer Consoleとの統合
 
 [NOTE]
-====
-OpenShift Pipelines プロジェクト は Developer Preview リリースです。開発者プレビューリリースには、完全にテストされていない可能性のある機能が含まれています。お客様は、開発者プレビューリリースを使用してフィードバックを提供することをお勧めします。Red Hat は報告された問題を修正することを約束しておらず、提供された機能は将来のリリースで利用できない可能性があります。
-====
+OpenShift Pipelines プロジェクト は Developer Preview リリースです。Developer Preview リリースには、完全にテストされていない可能性のある機能が含まれています。お客様は、このリリースを使用してフィードバックを提供することをお勧めします。Red Hat は報告された問題を修正することを約束しておらず、提供された機能は将来のリリースで利用できない可能性があります。
 
 ラボでは OpenShift 4 クラスタに OpenShift Pipelines が既にインストールされていますが、自分の OpenShift クラスタに OpenShift Pipelines をインストールしたい場合は、OpenShift OperatorHub で利用できるオペレーターを介してインストールできる OpenShift 上のアドオンとして OpenShift Pipelines が提供されています。
 
@@ -436,22 +463,30 @@ image::tekton-arch.png[severless, 800]
 
 パイプラインの概念の詳細については、パイプラインの定義に使用できる様々なパラメータや属性を理解するための優れたガイドを提供している https://github.com/tektoncd/pipeline/tree/master/docs#learn-more[Tekton documentation^] を参照してください。
 
+Tekton APIは、ステップを再利用できるようにコンフィギュレーションから機能を分離することができます（Pipelines vs PipelineRunsなど）が、これらのコンフィギュレーションを動的にカプセル化するリソース（特にPipelineRunsやPipelineResources）を生成するメカニズムは提供されていません。 Triggersは、以下のCRDでTektonアーキテクチャを拡張しています:
+
+* *TriggerTemplate* - 作成するリソースをテンプレート化します（例： PipelineResourcesと、それを使用するPipelineRunの作成）。
+* *TriggerBinding* - イベントを検証し、ペイロードフィールドを抽出します。
+* *EventListener* - TriggerBinding と TriggerTemplate をアドレス指定可能なエンドポイント（イベントシンク）に接続します。各 TriggerBinding から抽出されたイベントパラメータ（および供給された静的パラメータ）を使用して、対応する TriggerTemplate で指定されたリソースを作成します。また、外部サービスがインターセプターフィールドを介してイベントペイロードを前処理することも可能です。
+* *ClusterTriggerBinding* - クラスタスコープ付き TriggerBinding
+
+tektoncd/pipeline と一緒に _tektoncd/triggers_ を使うことで、実行がすべてKubernetesリソースで定義されている本格的なCI/CDシステムを簡単に作ることができます。
+
 このラボでは、パイプラインの概念と、OpenShift Serverless プラットフォーム上でマイクロサービスを構築してデプロイするための CI/CD パイプラインの作成と実行方法について説明します。
 
-https://github.com/spring-projects/spring-petclinic[Spring PetClinic^] マイクロサービスアプリを Spring Boot フレームワークを使って `{{ USER_ID }}-cloudnative-pipeline` プロジェクトにデプロイしてみましょう。
+https://github.com/openshift-pipelines/vote-ui[frontend^] と https://github.com/openshift-pipelines/vote-api[backend^] を `{{ USER_ID }}-cloudnative-pipeline` プロジェクトにデプロイしてみましょう。
 
-OpenShift 上に _PetClinic_ アプリをデプロイするための Kubernetes オブジェクトを作成します。PetClinic アプリ用のコンテナイメージがまだ構築されていないので、デプロイは完了しません。これは以下のセクションで CI/CD パイプラインを介して行います。
+*Task* は、順次実行される複数のステップで構成されています。TaskRun を作成することで _Task_ が実行されます。TaskRun は1つの Pod をスケジュールします。各ステップは、同じポッド内の別のコンテナで実行されます。また、パイプライン内の他のタスクと相互作用するために、入力と出力を持つこともできます。
 
-*タスク* は、順次実行される複数のステップで構成されています。TaskRun を作成することで _Task_ が実行されます。TaskRun は1つの Pod をスケジュールします。各ステップは、同じポッド内の別のコンテナで実行されます。また、パイプライン内の他のタスクと相互作用するために、入力と出力を持つこともできます。
-
-タスク _task_ が実行を開始すると、ポッドを起動し、同じポッド上の別のコンテナ内で各 *ステップ* を順次実行します。このタスクはたまたま単一のステップを持っていますが、タスクは複数のステップを持つことができ、同じポッド内で実行しているので、ファイルのキャッシュや configmaps、secret などにアクセスするために同じボリュームにアクセスすることができます。タスク `Tasks` は入力 (git リポジトリなど) と出力 (レジストリのイメージなど) を受け取って相互にやりとりすることもできます。
+_task_ が実行を開始すると、ポッドを起動し、同じポッド上の別のコンテナ内で各ステップを順次実行します。このタスクはたまたま単一のステップを持っていますが、タスクは複数のステップを持つことができ、同じポッド内で実行しているので、ファイルのキャッシュや configmaps、secret などにアクセスするために同じボリュームにアクセスすることができます。タスク `Tasks` は入力 (git リポジトリなど) と出力 (レジストリのイメージなど) を受け取って相互にやりとりすることもできます。
+_task_ が実行を開始すると、ポッドを起動し、同じポッド上の別のコンテナ内で各ステップを順次実行します。このタスクはたまたま1つのステップを持っていますが、タスクは複数のステップを持つことができ、同じポッド内で実行されるため、同じボリュームにアクセスすることができます。そのため、ファイルのキャッシュやconfigmaps、secretなどにアクセスすることが可能です。ワークスペースを使ってボリュームを指定することもできます。Taskは書き込み可能なワークスペースを最大1つ使用することをお勧めします。ワークスペースにはsecret、pvc、config、emptyDirを指定できます。
 
 [NOTE]
 ====
 git リポジトリの要件だけがタスクに宣言されていて、使用する特定の git リポジトリを指定しているわけではありません。これにより、_tasks_ を複数のパイプラインや目的に合わせて再利用できるようになります。再利用可能な _task_ の例は https://github.com/tektoncd/catalog[Tekton Catalog^] や https://github.com/openshift/pipelines-catalog[OpenShift Catalog^] リポジトリにあります。
 ====
 
-Java アプリケーションをコンパイルしてデプロイする方法を知っている、パイプラインで使用する2つの定義済みの Tekton タスクを作成する必要があります。以下のコマンドを使って apply-manifests と update-deployment Tekton タスクをインストールします :
+Java アプリケーションをコンパイルしてデプロイする方法を知っている、パイプラインで使用する2つの定義済みの Tekton タスクを作成する必要があります。以下のコマンドを使って `apply-manifests` と `update-deployment` Tekton タスクをインストールします :
 
 [source,sh,role="copypaste"]
 ----
@@ -473,31 +508,52 @@ tkn task list
 NAME               AGE
 apply-manifests   10 seconds ago
 update-deployment 10 seconds ago
+
+ここでは https://buildah.io/[buildah^] clusterTasks を使用します。これは Operator と一緒にインストールされます。Operatorは、ご覧のようにいくつかのClusterTaskをインストールします:
+
+[source,sh,role="copypaste"]
 ----
+tkn clustertasks ls | grep buildah
+----
+
+以下のようなClusterTaskが表示されます:
+
+[source,sh]
+----
+buildah                    Buildah task builds...   5 hours ago
+buildah-pr                 Buildah task builds...   5 hours ago
+buildah-pr-v0-14-3         Buildah task builds...   5 hours ago
+buildah-v0-14-3            Buildah task builds...   5 hours ago
 
 パイプラインは、実行されるべきタスクの数と、それらの入力と出力を介した相互作用の方法を定義します。
 
-このラボでは、PetClinic アプリケーションのソースコードを GitHub から取得し、 https://docs.openshift.com/container-platform/latest/builds/understanding-image-builds.html#build-strategy-s2i_understanding-image-builds[Source-to-Image(S2I)^] を使って OpenShift 上にビルドしてデプロイするパイプラインを作成します。
+このラボでは、GitHubからアプリケーションのソースコードを取り出し、OpenShift上にビルドしてデプロイするパイプラインを作成します。
 
-image::pipeline-diagram.png[serverless, 700]
+image::pipeline-diagram.png[serverless, 800]
 
-このパイプラインは以下のことを実行します:
+このパイプラインは、設定されたリソースを使用してバックエンド/フロントエンドをビルドしてデプロイするのに役立ちます。ここでは、パイプラインの高レベルな説明をします:
 
-* Git リポジトリ (_app-git_ リソース) からアプリケーションのソースコードをクローンします。
-* アプリケーション用の Dockerfile を生成する s2i-java-8 タスクを使用してコンテナイメージをビルドし、 https://buildah.io/[Buildah^] を使用してイメージをビルドします。
-* アプリケーションイメージはイメージレジストリにプッシュされます (_app-image_ リソース)
-* 新しいアプリケーションイメージは、_openshift-cli_ を使用して OpenShift 上にデプロイされます。
+<1> (_git-url_ と _git-revision_ パラメーター) を参照して git リポジトリからアプリケーションのソースコードをクローンします。
+<2> Buildahを使用してアプリケーションのコンテナイメージをビルドする_buildah_クラスタタスクを使用してアプリケーションのコンテナイメージをビルドします。
+<3> (_image_ param) を参照して、アプリケーションの画像を画像レジストリにプッシュします。
+<4> 新しいアプリケーションイメージは、 _apply-manifests_ と _update-deployment_ タスクを使用してOpenShift上にデプロイされます。
 
 [NOTE]
 ====
-PetClinic の Git リポジトリとそのイメージがレジストリにないことにお気づきかもしれません。これは、Tekton の _Pipelines_ は、アプリケーションのライフサイクルを通して、環境やステージを超えて再利用できるように設計されているからです。
+お気づきのように、パイプラインでプッシュされるgitリポジトリやイメージレジストリへの参照がないことに気づかれたかもしれません。これは、Tekton のパイプラインは、アプリケーションのライフサイクルを通して、環境やステージを越えて再利用できるように設計されているからです。
 ====
 
-パイプラインは、*resources* として生成される Git ソースリポジトリやイメージの詳細を抽象化します。パイプラインをトリガーする際には、パイプラインの実行中に使用する Git リポジトリやイメージのレジストリを指定することができます。我慢してください! これについては次のセクションで少し説明します。
+パイプラインは、生成される git ソースリポジトリやイメージの詳細を抽象化して _PipelineResources_ や _Params_ とします。パイプラインをトリガーする際には、パイプラインの実行時に使用する git リポジトリやイメージのレジストリを指定することができます。もうちょっと我慢してください!これについては次のセクションで少し説明します。
 
 _tasks_ の実行順序は、*inputs* と *outputs* で定義されたタスク間の依存関係と、*runAfter* で定義された明示的な順序によって決定されます。
 
-OpenShift コンソールで右上の `+` ボタンをクリックし、以下の YAML を貼り付けて *Create* をクリックします :
+_workspaces_ フィールドでは、パイプライン内の各タスクが実行中に必要とする1つまたは複数のボリュームを指定できます。ワークスペースは、 _workspaces_ フィールドで1つ以上指定します。
+
+OpenShiftコンソールでは、まず _Topology_ ビューにいることを確認してから、ドロップダウンを使用して `{{USER_ID}}}-cloudnative-pipeline` プロジェクトを選択します:
+
+image::pipeline-project-select.png[serverless, 800]
+
+次に、右上の `+` ボタンをクリックし、以下のYAMLを貼り付けて *Create* をクリックします:
 
 [source,yaml,role="copypaste"]
 ----
@@ -506,49 +562,69 @@ kind: Pipeline
 metadata:
   name: build-and-deploy
 spec:
-  resources:
-  - name: git-repo
-    type: git
-  - name: image
-    type: image
+  workspaces:
+  - name: shared-workspace
   params:
   - name: deployment-name
     type: string
     description: name of the deployment to be patched
+  - name: git-url
+    type: string
+    description: url of the git repo for the code of deployment
+  - name: git-revision
+    type: string
+    description: revision to be used from repo of the code for deployment
+    default: "master"
+  - name: IMAGE
+    type: string
+    description: image to be build from the code
   tasks:
+  - name: fetch-repository
+    taskRef:
+      name: git-clone
+      kind: ClusterTask
+    workspaces:
+    - name: output
+      workspace: shared-workspace
+    params:
+    - name: url
+      value: $(params.git-url)
+    - name: subdirectory
+      value: ""
+    - name: deleteExisting
+      value: "true"
+    - name: revision
+      value: $(params.git-revision)
   - name: build-image
     taskRef:
       name: buildah
       kind: ClusterTask
-    resources:
-      inputs:
-      - name: source
-        resource: git-repo
-      outputs:
-      - name: image
-        resource: image
     params:
     - name: TLSVERIFY
       value: "false"
+    - name: IMAGE
+      value: $(params.IMAGE)
+    workspaces:
+    - name: source
+      workspace: shared-workspace
+    runAfter:
+    - fetch-repository
   - name: apply-manifests
     taskRef:
       name: apply-manifests
-    resources:
-      inputs:
-      - name: source
-        resource: git-repo
+    workspaces:
+    - name: source
+      workspace: shared-workspace
     runAfter:
     - build-image
   - name: update-deployment
     taskRef:
       name: update-deployment
-    resources:
-      inputs:
-      - name: image
-        resource: image
     params:
     - name: deployment
       value: $(params.deployment-name)
+    - name: IMAGE
+      value: $(params.IMAGE)
     runAfter:
     - apply-manifests
 ----
@@ -557,124 +633,74 @@ spec:
 
 image::console-import-yaml-2.png[serverless, 800]
 
-パイプラインが作成されたので、パイプラインで指定したタスクを実行するためにパイプラインを起動します。まず、実行時にパイプラインで使用する Git リポジトリとイメージレジストリの仕様を含む *PipelineResources* をいくつか作成します。これらは複数のパイプラインにまたがって再利用可能です。
-
-以下の *PipelineResource* はフロントエンドアプリケーションの Git リポジトリです。OpenShift コンソールの右上隅にある `+` アイコンをクリックします。以下の`ui-repo` pipelineResource を `YAML` エディタでコピーし、*Create* をクリックします :
-
-[source,yaml,role="copypaste"]
-----
-apiVersion: tekton.dev/v1alpha1
-kind: PipelineResource
-metadata:
-  name: ui-repo
-spec:
-  type: git
-  params:
-  - name: url
-    value: http://github.com/openshift-pipelines/vote-ui.git
-----
-
-そして以下は、プッシュ先のフロントエンドイメージの OpenShift 内部イメージレジストリを定義しています。ここでも右上隅の+アイコンをクリックします。 `YAML` エディタで以下の `ui-image` pipelineResource をコピーし、 *Create* をクリックします :
-
-[source,yaml,role="copypaste"]
-----
-apiVersion: tekton.dev/v1alpha1
-kind: PipelineResource
-metadata:
-  name: ui-image
-spec:
-  type: image
-  params:
-  - name: url
-    value: image-registry.openshift-image-registry.svc:5000/{{ USER_ID }}-cloudnative-pipeline/vote-ui:latest
-----
-
-そして、以下の `api-repo` PipelineResource がバックエンドアプリケーションの git リポジトリを `YAML` エディタで定義しているので、*Create* をクリックします :
-
-[source,yaml,role="copypaste"]
-----
-apiVersion: tekton.dev/v1alpha1
-kind: PipelineResource
-metadata:
-  name: api-repo
-spec:
-  type: git
-  params:
-  - name: url
-    value: http://github.com/openshift-pipelines/vote-api.git
-----
-
-そして、以下の `api-image` PipelineResourceは、`YAML` エディタでプッシュするバックエンドイメージの OpenShift 内部イメージレジストリを定義し、 *Create* をクリックします :
-
-[source,yaml,role="copypaste"]
-----
-apiVersion: tekton.dev/v1alpha1
-kind: PipelineResource
-metadata:
-  name: api-image
-spec:
-  type: image
-  params:
-  - name: url
-    value: image-registry.openshift-image-registry.svc:5000/{{ USER_ID }}-cloudnative-pipeline/vote-api:latest
-----
-
-
-正常に作成されていることを確認するために、CodeReady Workspaces Terminal で以下の _Tekton CLI_ を実行します :
+パイプラインが作成されたので、CodeReady Workspaces Terminalの _Tekton CLI_ を使って作成したパイプラインのリストを確認します:
 
 [source,sh,role="copypaste"]
 ----
-tkn resource ls
+tkn pipeline ls
 ----
 
-作成されたリソースの一覧を見ることができます :
+作成されたリソースの一覧を見ることができます:
 
 [source,shell]
 ----
-NAME        TYPE    DETAILS
-api-repo    git     url: http://github.com/openshift-pipelines/vote-api.git
-ui-repo     git     url: http://github.com/openshift-pipelines/vote-ui.git
-api-image   image   url: image-registry.openshift-image-registry.svc:5000/user1-cloudnative-pipeline/vote-api:latest
-ui-image    image   url: image-registry.openshift-image-registry.svc:5000/user1-cloudnative-pipeline/vote-ui:latest
+NAME               AGE              LAST RUN   STARTED   DURATION   STATUS
+build-and-deploy   12 minutes ago   ---        ---       ---        ---
 ----
 
-*PipelineRun* は、パイプラインを起動して、この特定の呼び出しに使用するべき Git やイメージリソースに結びつける方法です。では、 {{ CONSOLE_URL }}/k8s/ns/{{ USER_ID }}-cloudnative-pipeline/tekton.dev%7Ev1beta1%7EPipeline[OpenShift Pipelines^] に移動して、*Start* をクリックしてみましょう :
+パイプライン実行に使用できる *PersistentVolumeClaim* を作成する必要があります:
+
+[source,sh,role="copypaste"]
+----
+oc create -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service/knative/pipeline/persistent_volume_claim.yaml
+----
+
+A *PipelineRun* is how you can start a pipeline and tie it to the Git and image resources that should be used for this specific invocation. Let's go to {{ CONSOLE_URL }}/k8s/ns/{{ USER_ID }}-cloudnative-pipeline/tekton.dev%7Ev1beta1%7EPipeline[OpenShift Pipelines^] and click on *Start*:
+*PipelineRun* は、パイプラインを起動して、この特定の呼び出しに使用するべきGitやイメージリソースに結びつける方法です。では、 {{ CONSOLE_URL }}/k8s/ns/{{ USER_ID }}-cloudnative-pipeline/tekton.dev%7Ev1beta1%7EPipeline[OpenShift Pipelines^] に移動して、 *Start* をクリックしてみましょう:
 
 image::pipeline-start.png[serverless, 800]
 
-このダイアログボックスでは、_build_ ステップのソースレポの最終ターゲット値と、_deploy_ ステップでデプロイするイメージの名前をバインドします。デフォルト値が表示されているので、*Start* をクリックするだけです :
+このダイアログボックスでは、 _build_ ステップのソースリポジトリの最終ターゲット値と、 _deploy_ ステップでデプロイするイメージの名前をバインドします。パラメータを入力して、以下のようにリソースを選択し、 *Start* をクリックします:
 
- * deployment-name: `vote-api`
- * git-repo: `http://github.com/openshift-pipelines/vote-api.git (api-repo)`
- * image: `image-registry.openshift-image-registry.svc:5000/{{ USER_ID }}-cloudnative-pipeline/vote-api:latest (api-image)`
+* deployment-name: `vote-api`
+ * git-url: `http://github.com/openshift-pipelines/vote-api.git`
+ * git-revision: `master`
+ * IMAGE: `image-registry.openshift-image-registry.svc:5000/{{ USER_ID }}-cloudnative-pipeline/vote-api`
+ * shared-workspace: `source-pvc` in *PVC*
 
 image::pipeline-start-popup.png[serverless, 700]
 
-*build-and-deploy* を起動するとすぐに pipelinerun がインスタンス化され、パイプラインで定義されているタスクを実行するためのポッドが作成されます。数分後、パイプラインは正常に終了するはずです。ステップの上にカーソルを置くと、ステップの進捗状況を簡単にスナップショットで見ることができますし、ステップをクリックするとステップの詳細なログを見ることができます。
-
-それでは、`vote-ui` アプリケーションをデプロイするためのパイプラインを実行してみましょう。 {{CONSOLE_URL }}/k8s/ns/{{ USER_ID }}}-cloudnative-pipeline/tekton.dev%7Ev1beta1%7EPipeline[OpenShift Pipelines^] に戻って、 *Start* をクリックします。次にパラメータを入力し、以下のようにリソースを選択して、 *Start* をクリックします。
-
- * deployment-name: `vote-ui`
- * git-repo: `http://github.com/openshift-pipelines/vote-ui.git (api-repo)`
- * image: `image-registry.openshift-image-registry.svc:5000/{{ USER_ID }}-cloudnative-pipeline/vote-ui:latest (api-image)`
-
-
+パイプラインの *build-and-deploy* を開始するとすぐにpipelinerunがインスタンス化され、パイプラインで定義されているタスクを実行するためのポッドが作成されます。数分後、パイプラインは正常に終了するはずです。ステップの上にカーソルを置くと、ステップの進捗状況を簡単にスナップショットで見ることができます。
 
 image::pipeline-complete.png[serverless, 800]
 
-ビルドが完了したら、 {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}/cloudnative-pipeline[Topology View^] 上で、*Open URL* をクリックします。PetClinic イメージが正常に構築され、デプロイされたことが確認できるはずです。
+それでは、 `vote-ui` アプリケーションをデプロイするためのパイプラインを実行してみましょう。 {{CONSOLE_URL }}/k8s/ns/{{ USER_ID }}-cloudnative-pipeline/tekton.dev%7Ev1beta1%7EPipeline[OpenShift Pipelines^] に戻って、 *Start* をクリックします。次にパラメータを入力し、以下のようにリソースを選択して、 *Start* をクリックします:
 
-image::petclinic-openurl.png[serverless, 800]
+ * deployment-name: `vote-ui`
+ * git-url: `http://github.com/openshift-pipelines/vote-ui.git`
+ * git-revision: `master`
+ * IMAGE: `image-registry.openshift-image-registry.svc:5000/{{ USER_ID }}-cloudnative-pipeline/vote-ui`
+ * shared-workspace: `source-pvc` in *PVC*
+
+image::pipeline-start-popup2.png[serverless, 700]
+
+ビルドが完了したら、 {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}/cloudnative-pipeline[Topology View^] 上で、 *Open URL* をクリックします。Vote UIが正常にビルドされ、デプロイされていることが確認できるはずです。
+
+image::voteui-openurl.png[serverless, 800]
 
 === 概要
 
-このモジュールでは、複数 のJava ランタイム(Quarkus と Spring Boot）、Javascript(Node.js)、異なるデータソース(PostgreSQL、MongoDB など)を使用して Cloud Native アプリケーションを開発し、REST API を使用したリアルタイムの _request/response_ 通信、_Red Hat Data Grid_ を使用した高パフォーマンスのキャッシュ可能なサービス、_Red Hat AMQ Streams_ で Apache Kafka を使用したイベントドリブン/リアクティブなショッピングカートサービスを実装した様々なビジネスユースケースに対応する方法を学びました。最後に、Knative で _OpenShift Serverless_ を利用して決済サービスを*Serverless* アプリケーションに変換しました。
+このモジュールでは、様々なビジネスユースケースを処理するためのクラウドネイティブアプリケーションの開発方法を学びました。具体的には、複数のJavaランタイム（QuarkusとSpring Boot）、Javascript（Node.js）、異なるデータソース（PostgreSQL、MongoDBなど）を使用して、REST APIを使用したリアルタイムの _request/response_ 通信、 _Red Hat Data Grid_ を使用した高パフォーマンスのキャッシュ可能なサービス、 _Red Hat AMQ Streams_ でApache Kafkaを使用したイベントドリブン/リアクティブなショッピングカートサービスを実装してきました。
+
+次に、 _OpenShift Serverless_ とKnativeを使って決済サービスを *Serverless* アプリケーションに変換しました。
+
+最後に、OpenShift Pipelinesを使って再利用可能なCI/CDパイプラインを作成しました。
 
 *Red Hat Runtimes* は、企業の開発者が高度なクラウドネイティブアーキテクチャを設計し、*Red Hat OpenShift Container Platform* 上のハイブリッドクラウド上でクラウドネイティブアプリケーションの開発、構築、デプロイを行うことを可能にします。おめでとうございます！
 
 ==== Additional Resources:
 
-* https://learn.openshift.com/middleware/courses/middleware-quarkus/[Quarkus Tutorials Right in Your Browser^]
+* https://learn.openshift.com/developing-with-quarkus/[Quarkus Tutorials Right in Your Browser^]
 * https://developers.redhat.com/articles/quarkus-quick-start-guide-kubernetes-native-java-stack/[Quarkus Quickstart Guide]
 * https://docs.openshift.com/container-platform/latest/serverless/serverless-getting-started.html[Getting started with OpenShift Serverless^]
 * https://www.openshift.com/learn/topics/pipelines[Cloud-native CI/CD on OpenShift^]
