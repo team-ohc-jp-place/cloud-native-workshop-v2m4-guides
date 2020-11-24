@@ -147,7 +147,7 @@ mvn -q quarkus:add-extension -Dextensions="jdbc-postgresql" -f $CHE_PROJECTS_ROO
 
 [source,console]
 ----
-✅ Adding extension io.quarkus:quarkus-jdbc-postgresql
+✅ Extension io.quarkus:quarkus-jdbc-postgresql has been installed
 ----
 
 まず、 {{ CONSOLE_URL }}[OpenShift web console^] で新規ブラウザを開きます :
@@ -278,7 +278,7 @@ image::codeready-workspace-catalog-project.png[catalog, 700]
 <dependency>
     <groupId>dev.snowdrop</groupId>
     <artifactId>snowdrop-dependencies</artifactId>
-    <version>2.2.6.Final-redhat-00001</version>
+    <version>2.2.10.Final-redhat-00001</version>
     <type>pom</type>
     <scope>import</scope>
 </dependency>
@@ -616,7 +616,7 @@ mvn -q quarkus:add-extension -Dextensions="openshift" -f $CHE_PROJECTS_ROOT/clou
 
 以下が確認できます:
 
-✅ Adding extension io.quarkus:quarkus-openshift
+✅ Extension io.quarkus:quarkus-openshift has been installed
 
 Quarkusでは、_configuration profiles_ という概念をサポートしています。これにより、同じファイル内に複数の設定を持つことができ、 _プロファイル名_ を使用してその中から選択することができます。
 
@@ -696,8 +696,8 @@ mvn -q quarkus:add-extension -Dextensions="resteasy-jsonb,mongodb-client" -f $CH
 
 [source,console]
 ----
-✅ Adding extension io.quarkus:quarkus-resteasy-jsonb
-✅ Adding extension io.quarkus:quarkus-mongodb-client
+✅ Extension io.quarkus:quarkus-resteasy-jsonb has been installed
+✅ Extension io.quarkus:quarkus-mongodb-client has been installed
 ----
 
 このコマンドは、RESTEasy/JAX-RS、JSON-B、MongoDBクライアント拡張機能をインポートする Maven 構造体を生成します。この後、quarkus-mongodb-client 拡張機能が *pom.xml* に追加されました。

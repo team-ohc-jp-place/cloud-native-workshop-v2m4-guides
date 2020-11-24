@@ -81,14 +81,14 @@ CodeReady Workspaces Terminal で Quarkus Kafka の拡張機能を使って Mave
 
 [source,sh,role="copypaste"]
 ----
-mvn -q quarkus:add-extension -Dextensions="kafka" -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service
+mvn -q quarkus:add-extension -Dextensions="messaging-kafka" -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service
 ----
 
 アウトプットに以下を確認することができます :
 
 [source,console]
 ----
-✅ Adding extension io.quarkus:quarkus-smallrye-reactive-messaging-kafka
+✅ Extension io.quarkus:quarkus-smallrye-reactive-messaging-kafka has been installed
 ----
 
 このコマンドは、Quarkus アプリケーション用の Kafka 拡張機能をインポートし、Kafka クラスタと統合するために必要なすべての機能を提供します。これを `pom.xml` に追加します。:
@@ -339,14 +339,14 @@ Quarkus *Kafka* 拡張機能を使用して Maven の依存関係を追加しま
 
 [source,sh,role="copypaste"]
 ----
-mvn -q quarkus:add-extension -Dextensions="kafka" -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/cart-service
+mvn -q quarkus:add-extension -Dextensions="messaging-kafka" -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/cart-service
 ----
 
 以下の出力を確認できます :
 
 [source,console]
 ----
-✅ Adding extension io.quarkus:quarkus-smallrye-reactive-messaging-kafka
+✅ Extension io.quarkus:quarkus-smallrye-reactive-messaging-kafka has been installed
 ----
 
 これにより、cart-service アプリに Kafka 拡張機能と API が追加されます。
@@ -449,14 +449,14 @@ Quarkus *Kafka* 拡張機能を使用してMavenの依存関係を追加しま�
 
 [source,sh,role="copypaste"]
 ----
-mvn -q quarkus:add-extension -Dextensions="kafka" -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/order-service
+mvn -q quarkus:add-extension -Dextensions="messaging-kafka" -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/order-service
 ----
 
 以下のアウトプットを確認できます :
 
 [source,console]
 ----
-✅ Adding extension io.quarkus:quarkus-smallrye-reactive-messaging-kafka
+✅ Extension io.quarkus:quarkus-smallrye-reactive-messaging-kafka has been installed
 ----
 
 このコマンドは、Quarkus アプリケーション用の Kafka 拡張機能をインポートして Maven プロジェクトを生成し、Kafka と統合して _payments_ と _orders_ トピックをサブスクライブするために必要なすべての機能を提供します。

@@ -96,7 +96,11 @@ https://github.com/RedHat-Middleware-Workshops/cloud-native-workshop-v2m4-labs.g
 
 image::crw-clone-repo.png[crw,900]
 
-プロジェクトはワークスペースにインポートされ、プロジェクトエクスプローラに表示されます:
+Click on *Select Repository Location* then click on *Add to Workpace*:
+
+image::crw-add-workspace.png[crw, 600, align="center"]
+
+The project is imported into your workspace and is visible in the project explorer:
 
 image::crw-clone-explorer.png[crw,900]
 
@@ -109,15 +113,15 @@ image::crw-clone-explorer.png[crw,900]
 cd $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs && git checkout ocp-4.5
 ----
 
-=== 他プロジェクトの削除
+[NOTE]
+====
+The Terminal window in CodeReady Workspaces. You can open a terminal window for any of the containers running in your Developer workspace. For the rest of these labs, anytime you need to run a command in a terminal, you can use the **>_ New Terminal** command on the right:
+
+image::codeready-workspace-terminal.png[codeready-workspace-terminal, 700]
+====
+
+=== Remove other projects
 
 今日他のモジュール(例えば `cloud-native-workshop-v2m1-lab` )を完了した場合は、エクスプローラでプロジェクト名を右クリックして *Delete* を選択し、警告を受け入れてワークスペースからそれらを削除してください。このラボのためにインポートした新しいプロジェクトを削除しないように注意してください。
 
 image::remove-workspace.png[remove, 700]
-
-[NOTE]
-====
-CodeReady ワークスペースのターミナルウィンドウ。Developer ワークスペースで実行しているコンテナのいずれかのターミナルウィンドウを開くことができます。これらのラボの残りの部分については、ターミナルでコマンドを実行する必要がある場合はいつでも、右側の *>_ New Terminal* コマンドを使用することができます :
-====
-
-image::codeready-workspace-terminal.png[codeready-workspace-terminal, 700]
