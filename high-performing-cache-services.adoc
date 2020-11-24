@@ -265,7 +265,7 @@ image::inventory_topology_openurl.png[inventory, 700]
 
 === 2. カタログサービスのデプロイ
 
-_カタログサービス_ は、小売商品の商品と価格を提供します。カタログサービスがどのように動作し、*Spring Boot* Javaランタイム上に構築されているかを簡単に見てみましょう。_CodeReady Workspaces_ の _Explorer. _CodeReady Workspaces_ Web IDEの/projects_に移動して、 *catalog-service* ディレクトリを展開します。
+_カタログサービス_ は、小売商品の商品と価格を提供します。カタログサービスがどのように動作し、*Spring Boot* Javaランタイム上に構築されているかを簡単に見てみましょう。_CodeReady Workspaces_ の _CodeReady Workspaces_ Web IDEの _/projects_ に移動して、 *catalog-service* ディレクトリを展開します。
 
 image::codeready-workspace-catalog-project.png[catalog, 700]
 
@@ -287,7 +287,7 @@ image::codeready-workspace-catalog-project.png[catalog, 700]
 image::catalog-pom.png[catalog, 700]
 
 また、catalog-service は、先ほど展開したインベントリサービスをRESTを使って呼び出して、インベントリの状態を取得し、インクルードしています。
-レスポンスの中にそれが表示されます。プロジェクトエクスプローラで `src/main/java/com/redhat/coolstore/service` ディレクトリの `CatalogService.java` を開き、`read()メソッド` と readAll() メソッドがどのように動作するかを確認してください :
+レスポンスの中にそれが表示されます。プロジェクトエクスプローラで `src/main/java/com/redhat/cloudnative/service` ディレクトリの `CatalogService.java` を開き、`read()メソッド` と readAll() メソッドがどのように動作するかを確認してください :
 
 image::catalog-service-codes.png[catalog, 700]
 
@@ -312,7 +312,7 @@ image::db-postgres.png[db, 700]
 
 *Instantiate Template* をクリックして、以下の項目を入力してください: 
 
-* *Namespace*: _choose `{{ USER_ID }}-cloudnativeapps` for the first Namespace. Leave the second one as `openshift`_
+* *Namespace*: _ 最初のネームスペースに `{{ USER_ID }}-cloudnativeapps` を指定してください。ふたつ目は `openshift` のままにしておきます。 _
 * *Database Service Name*: `catalog-database`
 * *PostgreSQL Connection Username*: `catalog`
 * *PostgreSQL Connection Password*: `mysecretpassword`
@@ -571,7 +571,7 @@ public class ProductMarshaller implements MessageMarshaller<Product> {
 
 Quarkus を使った方法を見てみましょう。私たちの *cart-service* プロジェクトとメインパッケージの `com.redhat.cloudnative` には `CartResource` があります。getCart メソッドを見てみましょう。
 
-At the `// TODO ADD getCart method` marker, add this method:
+`// TODO ADD getCart method` マーカーの箇所で次のメソッドを追加します。:
 
 [source,java,role="copypaste"]
 ----

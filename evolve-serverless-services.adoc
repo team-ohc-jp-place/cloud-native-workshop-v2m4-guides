@@ -266,7 +266,7 @@ kbd:[CTRL+/] (Mac OS の場合は kbd:[Command+/] ) で `onMessage()` メソッ�
 `mp.messaging.incoming`, `OpenShift extension` で始まる行だけをコメントアウトするか削除して、残りを残してください!
 ====
 
-Then append the following configuration for native compilation using `Mandrel` builder image:
+`Mandrel` ビルダーイメージを用いてネイティブコンパイルを行うために以下の設定を追加します。
 
 [source,properties,role="copypaste"]
 ----
@@ -279,38 +279,38 @@ quarkus.native.native-image-xmx=4g// <3>
 quarkus.openshift.expose=true
 ----
 
-<1> Define a project name where you deploy a serverless application
-<2> Enable the generation of Knative resources
-<3> Mximum Java heap to be used during the native image generation
+<1> サーバーレスアプリケーションをデプロイするプロジェクト名の定義
+<2> Knative リソースの生成を有効にする
+<3> ネイティブ画像生成時に使用する Java ヒープの最大値
 
 [NOTE]
 ====
-Mandrel is a downstream distribution of the GraalVM community edition. Mandrel's main goal is to provide a native-image release specifically to support https://access.redhat.com/documentation/en-us/red_hat_build_of_quarkus[Quarkus^]. The aim is to align the native-image capabilities from GraalVM with OpenJDK and Red Hat Enterprise Linux libraries to improve maintainability for native Quarkus applications.
+MandrelはGraalVMコミュニティ版のダウンストリームディストリビューションです。Mandrelの主な目標は、 https://access.redhat.com/documentation/en-us/red_hat_build_of_quarkus[Quarkus^] をサポートするためのネイティブイメージのリリースを提供することです。この目的は、GraalVMのネイティブイメージ機能をOpenJDKおよびRed Hat Enterprise Linuxライブラリと連携させ、Quarkusネイティブアプリケーションの保守性を向上させることです。
 ====
 
-In order to complie a native binary, Let's remove a specified package type(i.e. uberJar) configuration in `pom.xml`. Open the _pom.xml_ then remove or comment the following configuration option:
+ネイティブバイナリをコンパイルするために、`pom.xml` の中の指定されたパッケージタイプ(uberJar)の設定を削除しましょう。 _pom.xml_を開いて、以下の設定オプションを削除するかコメントしてください :
 
 image::remove-uberjar.png[serverless, 900]
 
-Rebuild and re-deploy new payment service via running the following maven plugin in CodeReady Workspaces Terminal:
+CodeReady Workspaces Terminal で以下の maven プラグインを実行して、新しい決済サービスを再構築し、再デプロイします。:
 
 [source,sh,role="copypaste"]
 ----
 mvn clean package -Pnative -DskipTests -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service
 ----
 
-The _-Pnative_ argument selects the native maven profile which invokes the _Graal compiler_. It will take a few minutes(up to 7 mins) to complete a native binary build as well as deploying a new knative service. After successful creation of the service we should see a *Knative Service*(_KSVC_) and *Revision*(_REV_) in the {{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}-cloudnativeapps[Topology View]:
+_-Pnative_ 引数は、_Graal compiler_ を起動するネイティブの maven プロファイルを選択します。ネイティブバイナリのビルドと新しいknativeサービスのデプロイを完了するのに数分(最大7分)かかります。サービスの作成に成功した後、{{ CONSOLE_URL }}/topology/ns/{{ USER_ID }}/cloudnativeapps[Topology View]に *Knative Service*(_KSVC_) と *Revision* (_REV_)が表示されます。
 
 [NOTE]
 ====
-It will take a few moments (up to 30 seconds) to fully render while the networking is setup properly. Try reloading the browser page if all you see is an empty box!
+ネットワークが適切に設定されている間は、完全にレンダリングされるまでに数秒（最大30秒）かかります。空のボックスが表示されている場合は、ブラウザページを再読み込みしてみてください。
 ====
 
 ラベルを編集して、_Quarkus_ アイコンを追加してみましょう。これまでは `oc label` コマンドで行っていましたが、今回は手動で行ってみましょう。支払い *REV* をクリックして、_Actions_ ドロップボックスで *Edit Labels* を選択します :
 
 image::kservice-up.png[serverless, 700]
 
-このラベルを追加し、*Save*をクリックします :
+このラベルを追加し、 *Save* をクリックします :
 
 [source,sh,role="copypaste"]
 ----
@@ -501,6 +501,7 @@ tkn task list
 NAME               AGE
 apply-manifests   10 seconds ago
 update-deployment 10 seconds ago
+----
 
 ここでは https://buildah.io/[buildah^] clusterTasks を使用します。これは Operator と一緒にインストールされます。Operatorは、ご覧のようにいくつかのClusterTaskをインストールします:
 
@@ -517,6 +518,7 @@ buildah                    Buildah task builds...   5 hours ago
 buildah-pr                 Buildah task builds...   5 hours ago
 buildah-pr-v0-14-3         Buildah task builds...   5 hours ago
 buildah-v0-14-3            Buildah task builds...   5 hours ago
+----
 
 パイプラインは、実行されるべきタスクの数と、それらの入力と出力を介した相互作用の方法を定義します。
 
@@ -542,7 +544,7 @@ _tasks_ の実行順序は、*inputs* と *outputs* で定義されたタスク�
 
 _workspaces_ フィールドでは、パイプライン内の各タスクが実行中に必要とする1つまたは複数のボリュームを指定できます。ワークスペースは、 _workspaces_ フィールドで1つ以上指定します。
 
-OpenShiftコンソールでは、まず _Topology_ ビューにいることを確認してから、ドロップダウンを使用して `{{USER_ID}}}-cloudnative-pipeline` プロジェクトを選択します:
+OpenShiftコンソールでは、まず _Topology_ ビューにいることを確認してから、ドロップダウンを使用して `{{ USER_ID }}}-cloudnative-pipeline` プロジェクトを選択します:
 
 image::pipeline-project-select.png[serverless, 800]
 
@@ -648,7 +650,6 @@ build-and-deploy   12 minutes ago   ---        ---       ---        ---
 oc create -f $CHE_PROJECTS_ROOT/cloud-native-workshop-v2m4-labs/payment-service/knative/pipeline/persistent_volume_claim.yaml
 ----
 
-A *PipelineRun* is how you can start a pipeline and tie it to the Git and image resources that should be used for this specific invocation. Let's go to {{ CONSOLE_URL }}/k8s/ns/{{ USER_ID }}-cloudnative-pipeline/tekton.dev%7Ev1beta1%7EPipeline[OpenShift Pipelines^] and click on *Start*:
 *PipelineRun* は、パイプラインを起動して、この特定の呼び出しに使用するべきGitやイメージリソースに結びつける方法です。では、 {{ CONSOLE_URL }}/k8s/ns/{{ USER_ID }}-cloudnative-pipeline/tekton.dev%7Ev1beta1%7EPipeline[OpenShift Pipelines^] に移動して、 *Start* をクリックしてみましょう:
 
 image::pipeline-start.png[serverless, 800]
