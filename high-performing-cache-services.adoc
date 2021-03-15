@@ -1,17 +1,17 @@
 = Lab1 - 高性能なキャッシュ可能なサービスの構築
 :experimental:
 
-このラボでは、5つのマイクロサービスを Cloud Native アプリケーションアーキテクチャで開発します。これらの Cloud Native アプリケーションは、*PostgreSQL* や *MongoDB* などの複数のデータソースとのトランザクションを持つことになります。特に、*Quarkus Extensions* を利用して、簡単にデータソースを設定する方法を学びます。最終的には、*Cache(Data Grid)サーバ* との連携により、ショッピングカートサービスのデータトランザクションのパフォーマンスを最適化し、エンドユーザーの満足度を向上させます。また、*oc* コマンドラインツールを使ってOpenShift 4上にアプリケーションを簡単にデプロイすることができます。
+このラボでは、5つのマイクロサービスをクラウド・ネイティブ・アプリケーション・アーキテクチャに開発します。これらのクラウド・ネイティブ・アプリケーションは、 *PostgreSQL* や *MongoDB* などの複数のデータソースとのトランザクションを持ちます。 特に、*Quarkus Extensions* を使ってデータソースを簡単に構成する方法を学びます。最終的には、エンドユーザー(顧客)の満足度を高めるために、 *Cache(Data Grid) サーバー* と統合して、ショッピングカートサービスの *データトランザクションパフォーマンス* を最適化します。さらに、 *oc* コマンドラインツールを使って、OpenShift 4 上にアプリケーションを簡単にデプロイできることも紹介しています。
 
 === このラボのゴール
 
-目標は、*Red Hat Runtimes* 上で高度なクラウドネイティブアプリケーションを開発し、_シングルサインオンアクセス管理_ と _分散キャッシュ管理_ を含む *OpenShift 4* 上でデプロイすることです。このラボの後には、以下のようなものを完成させる必要があります。
+目標は、 _distributed cache management_ を有効にした *Red Hat Runtimes* 上で高度なクラウドネイティブアプリケーションを開発し、 *OpenShift 4* にデプロイすることです。このラボの後、あなたは次のようなものを完成させる必要があります。
 
 image::lab1-goal.png[goal, 700]
 
 === 1. inventory-service のデプロイ
 
-_Inventory Service_ は、小売商品の在庫と在庫状況のデータを提供します。inventory-service がどのように動作し、*Quarkus* Javaランタイム上に構築されているかを簡単に見てみましょう。_CodeReady Works_  Web IDE の _/projects_ に移動し、*inventory-service* ディレクトリを展開してください。
+_Inventory Service_ は、小売商品の在庫と在庫状況のデータを提供します。inventory-service がどのように動作し、*Quarkus* Javaランタイム上に構築されているかを簡単に説明します。 _CodeReady Works_  Web IDE の _/projects_ に移動し、*inventory-service* ディレクトリを展開してください。
 
 image::codeready-workspace-inventory-project.png[inventory_service, 700]
 
@@ -63,7 +63,7 @@ image::inventoryResource.png[inventory_service, 700]
 
 [source,none]
 ----
-%dev.quarkus.datasource.url=jdbc:h2:file://projects/database.db
+%dev.quarkus.datasource.url=jdbc:h2:mem:inventory
 %dev.quarkus.datasource.driver=org.h2.Driver
 %dev.quarkus.datasource.username=inventory
 %dev.quarkus.datasource.password=mysecretpassword
@@ -132,7 +132,7 @@ curl http://localhost:8080/api/inventory | jq
   }
 ----
 
-実行中のQuarkus開発を kbd:[CTRL+C] (Mac OSの場合はkbd:[Command+C] )で終了させてください。
+必ず kbd:[CTRL+C] で実行中のQuarkusの開発を終了させてください。
 
 *本番* では、インベントリサービスは OpenShift クラスタ上の _PostgeSQL_ に接続します。
 
@@ -376,7 +376,7 @@ Red Hat Distributed _Data Grid_ を使用して、すべてのユーザーのカ
 
 [source,sh,role="copypaste"]
 ----
-oc new-app --as-deployment-config jboss/infinispan-server:10.0.0.Beta3 --name=datagrid-service
+oc new-app --as-deployment-config infinispan/server:12.0.0.Final-1 --name=datagrid-service -e USER=user -e PASS=pass
 ----
 
 これにより、ショッピングカートを格納するためのデータグリッドサーバのインスタンスが1つ作成されます。
@@ -392,163 +392,47 @@ oc new-app --as-deployment-config jboss/infinispan-server:10.0.0.Beta3 --name=da
 * データのマーシャルを作成する
 * キャッシュ接続をサービスに注入する
 
-この選択をより簡単にしました。デフォルトのシリアライズは *protobuf* をベースにしたライブラリを使用して行われます。protobuf スキーマと各ユーザタイプ用のマーシャラーを定義する必要があります。
-
-`cart-service/src/main/resources/META-INF` の `cart.proto` ファイルを見てみましょう :
+アノテーションベースのシリアライゼーションを使用することで、この選択が容易になりました。それでは、 `cart-service/src/main/java/com/redhat/cloudnative/model` にある、 `Product.java` クラスファイルを見てみましょう。
 
 [source,java]
 ----
-package coolstore;
+...
+    @ProtoFactory
+    public Product(String itemId, String name, String desc, double price) {
+        super();
+        this.itemId = itemId;
+        this.name = name;
+        this.desc = desc;
+        this.price = price;
+    }
 
-message ShoppingCart {
-  required double cartItemTotal = 1;
-  required double cartItemPromoSavings = 2;
-  required double shippingTotal = 3;
-  required double shippingPromoSavings = 4;
-  required double cartTotal = 5;
-  required string cartId = 6;
-
-  repeated ShoppingCartItem shoppingCartItemList = 7; // <1>
-}
-
-message ShoppingCartItem {
-  required double price = 1;
-  required int32 quantity = 2;
-  required double promoSavings = 3;
-  required Product product = 4; // <2>
-}
-
-// TODO ADD Product
-message Promotion {
-  required string itemId = 1;
-  required double percentOff = 2;
-}
-----
-<1> つまり、`ShoppingCart` は `ShoppingCartItem` のリスト (`repeated`) を持っていることになります。
-<2> 各 `ShoppingCartItem` は `Product` を持ちます。
-
-しかし、まだ `Product` を定義していません。このコードを `//TODO ADD Product` マーカーの下に追加します。
-
-[source,java,role="copypaste"]
-----
-message Product {
-  required string itemId = 1;
-  required string name = 2;
-  required string desc = 3;
-  required double price = 4;
-}
+    @ProtoField(number = 1)
+    public String getItemId() {
+        return itemId;
+    }
+    public void setItemId(String itemId) {
+        this.itemId = itemId;
+    }
+...
 ----
 
-*これで、プロトモデルに製品が定義されました。また、このモデルが POJO* (Plain Old Java Object)としても存在することを確認する必要があります。そうすれば、*RESTエンドポイント* や *Cache* が直接データをシリアライズしてデシリアライズすることができます。
+これは、 _Product_ クラスに Protostream アノテーション( *@ProtoFactory* ,  *@ProtoField* )を追加することで自動的に行うことができます。さらに、サポートするクラスをどのように生成するかを制御する _Initializer_ アノテーション付きインターフェイスが1つ必要です。
 
-次に、`cart-service/src/main/java/com/redhat/cloudnative/model` 内の `Product.java` を開く : 
+その場合、必要なのは非常にシンプルな *SerializationContextInitializer* インターフェイスで、そのインターフェイスに構成設定を指定するアノテーションが付いています。
 
-[source,java]
-----
-    private String itemId;
-    private String name;
-    private String desc;
-    private double price;
-----
-
-実体が私たちのプロトファイルと一致していることに注目してください。残りの部分、またはゲッターとセッターなので、それらにデータを読み書きすることができます。
-
-先に進み、Productクラス用の *Marshaller* を作成してみましょう。これは、キャッシュへの読み書きを正確に行います。
-
-`com.redhat.cloudnative.model` の中に `ProductMarshaller.java` という名前の Java クラスを新規作成し、以下のコードをファイルにコピーする。
+`com.redhat.cloudnative.model` の中に `CartContextInitializer.java` という新しいJavaクラスを作成し、その中に以下のコードをコピーします。
 
 [source,java,role="copypaste"]
 ----
 package com.redhat.cloudnative.model;
 
-import org.infinispan.protostream.MessageMarshaller;
+import org.infinispan.protostream.SerializationContextInitializer;
+import org.infinispan.protostream.annotations.AutoProtoSchemaBuilder;
 
-import java.io.IOException;
-
-public class ProductMarshaller implements MessageMarshaller<Product> {
-
-    /*
-     * Proto file specimen
-     * message Product {
-     * required string itemId = 1;
-     * required string name = 2;
-     * required string desc = 3;
-     * required double price = 4;
-     * }
-     */
-
-    @Override
-    public Product readFrom(ProtoStreamReader reader) throws IOException {
-        String itemId = reader.readString("itemId");
-        String name = reader.readString("name");
-        String desc = reader.readString("desc");
-        double price = reader.readDouble("price");
-
-        return new Product(itemId, name, desc, price);
-    }
-
-    @Override
-    public void writeTo(ProtoStreamWriter writer, Product product) throws IOException {
-        writer.writeString("itemId", product.getItemId());
-        writer.writeString("name", product.getName());
-        writer.writeString("desc", product.getDesc());
-        writer.writeDouble("price", product.getPrice());
-    }
-
-    @Override
-    public Class<? extends Product> getJavaClass() {
-        return Product.class;
-    }
-
-    @Override
-    public String getTypeName() {
-        return "coolstore.Product";
-    }
+@AutoProtoSchemaBuilder (includeClasses = {ShoppingCart.class, ShoppingCartItem.class, Promotion.class, Product.class }, schemaPackageName = "coolstore")
+interface CartContextInitializer extends SerializationContextInitializer {
 
 }
-----
-
-これで、*ProtoStream* からの読み込みと *Write* ができるようになりました。そして、これはキャッシュに直接実行されます。他のモデルクラスとマッシャーは既に作成済みです。
-
-それでは、*RemoteCache* を設定してみましょう。`com.redhat.cloudnative` ディレクトリ/パッケージ内の `Producers.java` ファイルを開きます。
-
-プロデューサを使用して RemoteCache を確実にインスタンス化します。getCache と getConfigBuilder というメソッドを作成します。
-
-* getConfigBuilder: 基本的なキャッシュ設定を設定します
-* getCache、マーシャラーとプロトファイルをセットアップします
-* その他の設定プロパティは実行時に注入されます
-
-このコードを `// TODO Add getCache` と `// TODO add getConfigBuilder` マーカーの下に追加します :
-
-[source,java,role="copypaste"]
-----
-    @Produces
-    RemoteCache<String, ShoppingCart> getCache() throws IOException {
-
-        RemoteCacheManager manager = new RemoteCacheManager(getConfigBuilder().build());
-
-        SerializationContext serCtx = ProtoStreamMarshaller.getSerializationContext(manager);
-        FileDescriptorSource fds = new FileDescriptorSource();
-        fds.addProtoFiles("META-INF/cart.proto");
-        serCtx.registerProtoFiles(fds);
-        serCtx.registerMarshaller(new ShoppingCartMarshaller());
-        serCtx.registerMarshaller(new ShoppingCartItemMarshaller());
-        serCtx.registerMarshaller(new ProductMarshaller());
-        serCtx.registerMarshaller(new PromotionMarhsaller());
-        return manager.getCache();
-    }
-
-    protected ConfigurationBuilder getConfigBuilder() {
-        ConfigurationBuilder cfg = null;
-        cfg = new ConfigurationBuilder().addServer()
-                .host(dgHost)
-                .port(dgPort)
-                .marshaller(new ProtoStreamMarshaller())
-                .clientIntelligence(ClientIntelligence.BASIC);
-
-        return cfg;
-
-    }
 ----
 
 これで、キャッシュを使用するためのすべてのビルディングブロックの準備が整いました。キャッシュを使い始めましょう。
@@ -558,7 +442,7 @@ public class ProductMarshaller implements MessageMarshaller<Product> {
 [source,java,role="copypaste"]
 ----
     @Inject
-    @Remote("default")
+    @Remote(CacheService.CART_CACHE)
     RemoteCache<String, ShoppingCart> carts;
 ----
 
@@ -591,12 +475,11 @@ Quarkus を使った方法を見てみましょう。私たちの *cart-service*
 [source,java,role="copypaste"]
 ----
     @GET
-    @Produces(MediaType.TEXT_PLAIN)
-    @Path("/{cartId}")
-    @Operation(summary = "get the contents of cart by cartId")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("{cartId}")
 ----
 
-これで、メソッドが GET リクエストに準拠し、*プレーンテキスト* でデータを受け付けることに成功しました。パスは `/api/cart/{cartId}` になります。最後に、いくつかのドキュメントを作成するために `@Operation` アノテーションを追加します。
+これで、メソッドが GET リクエストに準拠し、*プレーンテキスト* でデータを受け付けることに成功しました。
 
 この機会に他のメソッドのいくつかを見てみましょう。`@POST` と `@DELETE`、そしてそれらが従うパスを見つけることができるでしょう。これは、アプリケーションのためのシンプルなエンドポイントを構築する方法です。
 
@@ -675,7 +558,7 @@ http://cart-{{ USER_ID }}-cloudnativeapps.{{ ROUTE_SUBDOMAIN }}/swagger-ui[Cart 
 
 image::cart-swagger-ui.png[cart, 700]
 
-メソッドの後にドキュメントがあることに注意してください、これは他のサービス開発者が各サービスメソッドで何をしようとしているかを知るための優れた方法です。メソッドを呼び出してみて、サービスからの出力を見ることができます。したがって、迅速にテストするための優れた方法でもあります。
+メソッドを起動して、サービスからの出力を確認することができます。そのため、迅速なテストが可能です。
 
 === 4. オーダーサービスの開発と展開
 

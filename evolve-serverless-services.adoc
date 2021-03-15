@@ -57,11 +57,11 @@ Quarkusが _SuperSonic Subatomic Subatomic Java_ と名乗る理由を調べて�
 [source,sh,role="copypaste"]
 ----
 mkdir /tmp/hello && cd /tmp/hello && \
-mvn io.quarkus:quarkus-maven-plugin:1.7.5.Final-redhat-00007:create \
+mvn io.quarkus:quarkus-maven-plugin:1.7.6.Final-redhat-00014:create \
     -DprojectGroupId=org.acme \
     -DprojectArtifactId=getting-started \
     -DplatformGroupId=com.redhat.quarkus \
-    -DplatformVersion=1.7.5.Final-redhat-00007 \
+    -DplatformVersion=1.7.6.Final-redhat-00014 \
     -DclassName="org.acme.quickstart.GreetingResource" \
     -Dpath="/hello"
 ----
@@ -281,7 +281,7 @@ quarkus.openshift.expose=true
 
 <1> サーバーレスアプリケーションをデプロイするプロジェクト名の定義
 <2> Knative リソースの生成を有効にする
-<3> ネイティブ画像生成時に使用する Java ヒープの最大値
+<3> ネイティブイメージ生成時に使用する Java ヒープの最大値
 
 [NOTE]
 ====
@@ -452,7 +452,7 @@ OpenShift Pipelines プロジェクト は Developer Preview リリースです�
 * *TaskRun*: タスクのインスタンスの実行結果 (例 成功 or 失敗)
 * *PipelineRun*: パイプラインの実行結果 (例 成功 or 失敗)
 
-image::tekton-arch.png[severless, 800]
+image::tekton-arch.png[serverless, 800]
 
 パイプラインの概念の詳細については、パイプラインの定義に使用できる様々なパラメータや属性を理解するための優れたガイドを提供している https://github.com/tektoncd/pipeline/tree/master/docs#learn-more[Tekton documentation^] を参照してください。
 
@@ -658,7 +658,7 @@ image::pipeline-start.png[serverless, 800]
 
 * deployment-name: `vote-api`
  * git-url: `http://github.com/openshift-pipelines/vote-api.git`
- * git-revision: `master`
+ * git-revision: `release-tech-preview-2`
  * IMAGE: `image-registry.openshift-image-registry.svc:5000/{{ USER_ID }}-cloudnative-pipeline/vote-api`
  * shared-workspace: `source-pvc` in *PVC*
 
@@ -672,7 +672,7 @@ image::pipeline-complete.png[serverless, 800]
 
  * deployment-name: `vote-ui`
  * git-url: `http://github.com/openshift-pipelines/vote-ui.git`
- * git-revision: `master`
+ * git-revision: `release-tech-preview-2`
  * IMAGE: `image-registry.openshift-image-registry.svc:5000/{{ USER_ID }}-cloudnative-pipeline/vote-ui`
  * shared-workspace: `source-pvc` in *PVC*
 

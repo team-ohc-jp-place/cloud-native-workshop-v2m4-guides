@@ -5,7 +5,7 @@
 
 イベント駆動型アーキテクチャでは、リアクティブ・プログラミングと分散メッセージングを使用して、データ・ストリームをイベントとして扱うことができます。*リアクティブ・プログラミング* は、データ・ストリームと変化の伝播に関係する非同期プログラミング・パラダイムです。前のラボでは、インベントリ、カタログ、ショッピングカート、注文サービスを明らかな相互作用を持って開発しました。
 
-このラボでは、ショッピングカートと注文の実装を変更し、Cloud Native アプリケーションアーキテクチャのイベント駆動/リアクティブアプリケーションとして決済サービスを追加します。これらの Cloud Native アプリケーションは、メッセージング/ストリーミングのバックボーンとして AMQ Streams (Apache Kafka ベース) を使用します。AMQ Streams を使用すると、OpenShift 上で Apache Kafka を簡単に実行できるようになります :
+このラボでは、ショッピングカートと注文の実装を変更し、クラウド・ネイティブ・アプリケーション・アーキテクチャの Event-Driven/Reactive アプリケーションとして決済サービスを追加します。これらのクラウド・ネイティブ・アプリケーションでは、メッセージング／ストリーミングのバックボーンとして AMQ Streams（Apache Kafkaベース）を使用します。AMQ Streams は、主要な機能を備えており、OpenShift 上で Apache Kafka を簡単に実行することができます。
 
 * 水平方向のスケーラビリティを考慮した設計
 * パーティションレベルでのメッセージ順序保証
@@ -13,7 +13,7 @@
 
 === このラボのゴール
 
-目標は、*Red Hat Runtimes* 上で高度なクラウドネイティブアプリケーションを開発し、分散メッシング機能のための *AMQ Streams* を含む *OpenShift 4* 上にデプロイすることです。このラボの後には、次のようなものを完成させる必要があります :
+目標は、 *Red Hat Runtimes* 上で高度なクラウドネイティブアプリケーションを開発し、分散メッセージング機能のための *AMQ Streams* を含む *OpenShift 4* 上に展開することです。このラボの後には、次のようなものが出来上がるはずです :
 
 image::lab2-goal.png[goal, 700]
 
@@ -414,7 +414,6 @@ import org.apache.kafka.common.header.internals.RecordHeaders;
     @Path("/checkout/{cartId}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "checkout")
     public ShoppingCart checkout(@PathParam("cartId") String cartId, Order order) {
         sendOrder(order, cartId);
         return shoppingCartService.checkout(cartId);
@@ -607,6 +606,6 @@ image::payment-completedorfailed.png[serverless, 1000]
 
 === 概要
 
-このシナリオでは、_Apache Kafka_を使用して、ショッピングカートサービスから注文サービス、決済サービスまでのデータストリームを扱う _Event-Driven/Reactive_ Cloud Native アプリを開発しました。また、アプリを Kafka と統合するために、Quarkus とその _Kafka extension_ を使用しました。Red Hat が完全にサポートしている Kafka ソリューションである _AMQ Streams_ を使用すると、OpenShift の開発者カタログを介して Apache Kafka クラスタを非常に簡単に作成することができます。
+このシナリオでは、 _Apache Kafka_ を使用して、ショッピングカートサービスから注文サービスや支払いサービスへのデータストリームを処理する、 _Event-Driven/Reactive_ クラウドネイティブアプリケーションを開発しました。また、アプリと Kafka を統合するために、Quarkus とその _Kafka extension_ を使用しました。 _AMQ Streams_ は、Red Hat が完全にサポートする Kafka ソリューションで、OpenShift の開発者カタログを介して非常に簡単に Apache Kafka クラスタを作成することができます。
 
 現在では、リアクティブシステムを実装するためのメッセージ駆動型のマイクロサービスがあり、すべてのコンポーネントが非同期のメッセージパッシングを使用して相互作用するため、信頼性、拡張性、市場投入までの時間が短縮されています。最も重要なことは、Quarkus は、イベント駆動型のマイクロサービスやリアクティブシステムの実装に完璧に適しているということです。*Congratulations!*
